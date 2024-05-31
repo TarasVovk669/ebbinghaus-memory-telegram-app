@@ -1,0 +1,58 @@
+  version: '3'
+  services:
+    ebbinghaus-memory-telegram-bot:
+      build: ${BUILD_PATH}
+      image: ebbinghaus-memory-bot
+      container_name: ebbinghaus-memory-bot
+      logging:
+        options:
+          max-size: "10m"
+          max-file: "3"
+      volumes:
+        - local:/var/lib/ebbinghaus-memory-bot/
+        - emtb-log-path:/logs
+      environment:
+        DB_HOST: ${EMTB_DB_HOST}
+        DB_NAME: ${EMTB_DB_NAME}
+        DB_USERNAME: ${EMTB_DB_USERNAME}
+        DB_PASSWORD: ${EMTB_DB_PASSWORD}
+        BOT_TOKEN: ${EMTB_BOT_TOKEN}
+        BOT_NAME: ${EMTB_BOT_NAME}
+        BOT_OWNER: ${EMTB_BOT_OWNER}
+        APP_PORT: ${EMTB_APP_PORT}
+        JAVA_TOOL_OPTIONS: ${EMTB_JAVA_OPTS}
+      ports:
+        - ${EMTB_APP_EXTERNAL_PORT}:${EMTB_APP_PORT}
+      networks:
+        - emtb
+      restart: on-failure
+      depends_on:
+        - postgres_emtb
+    postgres_emtb:
+      container_name: postgres_emtb
+      image: postgres:16
+      volumes:
+        - postgres_data:/var/lib/postgres/emtb
+      environment:
+        POSTGRES_DB: ${EMTB_DB_NAME}
+        POSTGRES_USER: ${EMTB_DB_USERNAME}
+        POSTGRES_PASSWORD: ${EMTB_DB_PASSWORD}
+      ports:
+        - ${DB_EMTB_EXTERNAL_PORT}:5432
+      networks:
+        - emtb
+  volumes:
+    postgres_data:
+      driver: local
+    emtb-log-path:
+      driver: local
+      driver_opts:
+        type: none
+        o: bind
+        device: ${EMTB_LOG_PATH}
+    local:
+      driver: local
+
+  networks:
+    emtb:
+      driver: bridge
