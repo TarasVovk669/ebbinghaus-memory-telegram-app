@@ -3,6 +3,7 @@ package com.ebbinghaus.memory.app.service.impl;
 import com.ebbinghaus.memory.app.domain.Category;
 import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.domain.EMessageEntity;
+import com.ebbinghaus.memory.app.repository.CategoryRepository;
 import com.ebbinghaus.memory.app.repository.MessageEntityRepository;
 import com.ebbinghaus.memory.app.repository.MessageRepository;
 import com.ebbinghaus.memory.app.service.CategoryService;
@@ -35,6 +36,8 @@ public class MessageServiceImpl implements MessageService {
 
     private final CategoryService categoryService;
 
+    private final CategoryRepository categoryRepository;
+
     @Override
     @Transactional
     public EMessage addMessage(EMessage message) {
@@ -43,19 +46,24 @@ public class MessageServiceImpl implements MessageService {
         Map<String, Category> existingCategories =
                 categoryService.existingCategories(message.getCategories(), message.getOwnerId());
 
-        message.setCategories(
-                Optional.ofNullable(message.getCategories())
-                        .map(categories ->
-                                categories.stream()
-                                        .map(c -> existingCategories.getOrDefault(
-                                                c.getName(),
-                                                Category.builder()
-                                                        .name(c.getName())
-                                                        .ownerId(message.getOwnerId())
-                                                        .build()))
-                                        .collect(Collectors.toSet()))
-                        .orElse(null));
-
+        message.setCategories(Optional.ofNullable(message.getCategories())
+                .map(categories ->
+                        categories
+                                .stream()
+                                .map(category -> {
+                                    if (existingCategories.containsKey(category.getName())) {
+                                        return existingCategories.get(category.getName());
+                                    } else {
+                                        return categoryRepository
+                                                .save(
+                                                        Category.builder()
+                                                                .name(category.getName())
+                                                                .ownerId(message.getOwnerId())
+                                                                .build());
+                                    }
+                                })
+                                .collect(Collectors.toSet()))
+                .orElse(new HashSet<>()));
         return messageRepository.save(message);
     }
 
@@ -67,20 +75,21 @@ public class MessageServiceImpl implements MessageService {
         Map<String, Category> existingCategories =
                 categoryService.existingCategories(message.getCategories(), message.getOwnerId());
 
-        message.setCategories(
-                Optional.ofNullable(message.getCategories())
-                        .map(categories ->
-                                categories.stream()
-                                        .map(c -> existingCategories.getOrDefault(
-                                                c.getName(),
-                                                Category.builder()
-                                                        .name(c.getName())
-                                                        .ownerId(message.getOwnerId())
-                                                        .build()))
-                                        .collect(Collectors.toSet()))
-                        .orElse(null));
+        Set<Category> list = new HashSet<>();
+        for (Category c : message.getCategories()) {
+            if (existingCategories.containsKey(c.getName())) {
+                list.add(existingCategories.get(c.getName()));
+            } else {
+                list.add(categoryRepository
+                        .save(
+                                Category.builder()
+                                        .name(c.getName())
+                                        .ownerId(message.getOwnerId())
+                                        .build()));
+            }
+        }
 
-        message.setCategories(null);
+        message.setCategories(list);
         return messageRepository.save(message);
     }
 
@@ -94,10 +103,9 @@ public class MessageServiceImpl implements MessageService {
                 size,
                 sort);
 
-        Page<EMessage> messages = Optional.ofNullable(categoryId)
-                .map(cId -> messageRepository.getAllByOwnerIdAndCategories(
-                        userId, cId, PageRequest.of(page, size, sort)))
-                .orElse(messageRepository.getAllByOwnerId(userId, PageRequest.of(page, size, sort)));
+        Page<EMessage> messages = null != categoryId
+                ? messageRepository.getAllByOwnerIdAndCategories(userId, categoryId, PageRequest.of(page, size, sort))
+                : messageRepository.getAllByOwnerId(userId, PageRequest.of(page, size, sort));
 
         Map<Long, List<EMessageEntity>> messageEntitiesMap = getMessageEntitiesMap(messages);
 

@@ -40,7 +40,6 @@ public class EMessage {
 
     @ManyToMany(
             fetch = FetchType.LAZY
-            , cascade = CascadeType.ALL
     )
     @JoinTable(
             name = "message_category",
