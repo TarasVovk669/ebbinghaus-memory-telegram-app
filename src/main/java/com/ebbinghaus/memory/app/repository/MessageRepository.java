@@ -13,15 +13,15 @@ import java.util.Optional;
 @Repository
 public interface MessageRepository extends JpaRepository<EMessage, Long> {
 
-  Page<EMessage> getAllByOwnerId(Long ownerId, Pageable pageable);
+    Page<EMessage> getAllByOwnerId(Long ownerId, Pageable pageable);
 
-  //@EntityGraph(attributePaths = {"messageEntities"})
-  @Query("SELECT m FROM EMessage m JOIN m.categories c WHERE m.ownerId=:ownerId AND c.id = :categoryId")
-  Page<EMessage> getAllByOwnerIdAndCategories(Long ownerId, Long categoryId , Pageable pageable);
+    //@EntityGraph(attributePaths = {"messageEntities"})
+    @Query("SELECT m FROM EMessage m JOIN m.messageCategories c WHERE m.ownerId=:ownerId AND c.category.id = :categoryId")
+    Page<EMessage> getAllByOwnerIdAndCategories(Long ownerId, Long categoryId, Pageable pageable);
 
-  @EntityGraph(attributePaths = {"categories", "messageEntities"})
-  Optional<EMessage> getEMessageById(Long id);
+    @EntityGraph(attributePaths = {"messageCategories", "messageEntities"})
+    Optional<EMessage> getEMessageById(Long id);
 
-  @EntityGraph(attributePaths = {"categories", "messageEntities"})
-  Optional<EMessage> getEMessageByMessageIdAndOwnerId(Long messageId, Long ownerId);
+    @EntityGraph(attributePaths = {"messageCategories", "messageEntities"})
+    Optional<EMessage> getEMessageByMessageIdAndOwnerId(Long messageId, Long ownerId);
 }

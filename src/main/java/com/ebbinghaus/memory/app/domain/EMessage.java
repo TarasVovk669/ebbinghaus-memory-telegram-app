@@ -9,9 +9,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Data
+@ToString(exclude = {"messageCategories"})
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -38,16 +40,11 @@ public class EMessage {
     @Embedded
     private File file;
 
-    @ManyToMany(
-            fetch = FetchType.LAZY
-    )
-    @JoinTable(
-            name = "message_category",
-            joinColumns = @JoinColumn(name = "message_id"),
-            inverseJoinColumns = @JoinColumn(name = "category_id"))
-    private Set<Category> categories = new HashSet<>();
+    @OneToMany(cascade = {CascadeType.REMOVE})
+    @JoinColumn(name = "message_id")
+    private Set<EMessageCategory> messageCategories = new HashSet<>();
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "e_message_id")
     private Set<EMessageEntity> messageEntities = new HashSet<>();
 
@@ -58,4 +55,17 @@ public class EMessage {
     private LocalDateTime updatedDateTime;
 
     private LocalDateTime nextExecutionDateTime;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EMessage eMessage = (EMessage) o;
+        return Objects.equals(id, eMessage.id) && Objects.equals(ownerId, eMessage.ownerId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, ownerId);
+    }
 }

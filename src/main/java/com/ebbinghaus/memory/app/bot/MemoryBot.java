@@ -1,10 +1,7 @@
 package com.ebbinghaus.memory.app.bot;
 
 import com.ebbinghaus.memory.app.domain.*;
-import com.ebbinghaus.memory.app.model.InputUserData;
-import com.ebbinghaus.memory.app.model.MessageDataRequest;
-import com.ebbinghaus.memory.app.model.MessageType;
-import com.ebbinghaus.memory.app.model.UserState;
+import com.ebbinghaus.memory.app.model.*;
 import com.ebbinghaus.memory.app.service.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -1101,11 +1098,10 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
         return result.toString();
     }
 
-    private EMessage prepareEditedMessage(EMessage eMessage, InputUserData userData) {
+    private MessageTuple prepareEditedMessage(EMessage eMessage, InputUserData userData) {
         eMessage
                 .setText(userData.getMessageText())
                 .setFile(userData.getFile())
-                .setCategories(getCategories(userData))
                 .setMessageEntities(
                         Optional.ofNullable(userData.getMessageEntities())
                                 .map(
@@ -1124,39 +1120,40 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                                                 })
                                                         .collect(Collectors.toSet()))
                                 .orElse(null));
-        return eMessage;
+
+
+        return new MessageTuple(eMessage, getCategories(userData));
     }
 
-    private EMessage parseInput(InputUserData userData) {
+    private MessageTuple parseInput(InputUserData userData) {
         var input = userData.getMessageText();
 
-        return EMessage.builder()
-                .text(input)
-                .categories(getCategories(userData))
-                .messageEntities(
-                        Optional.ofNullable(userData.getMessageEntities())
-                                .map(
-                                        entities ->
+        return new MessageTuple(
+                EMessage.builder()
+                        .text(input)
+                        .messageEntities(
+                                Optional.ofNullable(userData.getMessageEntities())
+                                        .map(entities ->
                                                 entities.stream()
-                                                        .map(
-                                                                me -> {
-                                                                    try {
-                                                                        return EMessageEntity.builder()
-                                                                                .value(objectMapper.writeValueAsString(me))
-                                                                                .build();
-                                                                    } catch (JsonProcessingException e) {
-                                                                        log.error("Error: ", e);
-                                                                        return null;
-                                                                    }
-                                                                })
+                                                        .map(me -> {
+                                                            try {
+                                                                return EMessageEntity.builder()
+                                                                        .value(objectMapper.writeValueAsString(me))
+                                                                        .build();
+                                                            } catch (JsonProcessingException e) {
+                                                                log.error("Error: ", e);
+                                                                return null;
+                                                            }
+                                                        })
                                                         .collect(Collectors.toSet()))
-                                .orElse(null))
-                .ownerId(userData.getUser().getId())
-                .file(userData.getFile())
-                .messageId(userData.getMessageId().longValue())
-                .executionStep(FIRST_EXECUTION_STEP)
-                .nextExecutionDateTime(calculateNextExecutionTime(LocalDateTime.now(UTC)))
-                .build();
+                                        .orElse(null))
+                        .ownerId(userData.getUser().getId())
+                        .file(userData.getFile())
+                        .messageId(userData.getMessageId().longValue())
+                        .executionStep(FIRST_EXECUTION_STEP)
+                        .nextExecutionDateTime(calculateNextExecutionTime(LocalDateTime.now(UTC)))
+                        .build(),
+                getCategories(userData));
     }
 
     private void cleanMessagesInStatus(InputUserData userData, List<UserState> awaitingCustomNames) {

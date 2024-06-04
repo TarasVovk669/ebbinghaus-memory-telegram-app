@@ -1,15 +1,15 @@
 package com.ebbinghaus.memory.app.service;
 
 import com.ebbinghaus.memory.app.domain.EMessage;
+import com.ebbinghaus.memory.app.model.MessageTuple;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
-import org.springframework.transaction.annotation.Transactional;
 
 public interface MessageService {
 
-    EMessage addMessage(EMessage message);
+    EMessage addMessage(MessageTuple message);
 
-    EMessage updateMessage(EMessage message);
+    EMessage updateMessage(MessageTuple message);
 
     Page<EMessage> getMessages(Long userId, Long categoryId, int page, int size, Sort sort);
 

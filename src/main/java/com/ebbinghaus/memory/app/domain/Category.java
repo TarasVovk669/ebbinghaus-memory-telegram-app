@@ -29,8 +29,9 @@ public class Category {
 
   private Long ownerId;
 
-  @ManyToMany(fetch = FetchType.LAZY, mappedBy = "categories")
-  private Set<EMessage> messages = new HashSet<>();
+  @OneToMany
+  @JoinColumn(name = "category_id")
+  private Set<EMessageCategory> messageCategories = new HashSet<>();
 
   @CreationTimestamp private LocalDateTime createdDateTime;
 
