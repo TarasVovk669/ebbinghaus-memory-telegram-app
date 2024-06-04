@@ -1,12 +1,13 @@
 package com.ebbinghaus.memory.app.domain.embedded;
 
 import com.ebbinghaus.memory.app.model.UserState;
-import jakarta.persistence.*;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 

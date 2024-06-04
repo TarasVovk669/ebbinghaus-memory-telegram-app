@@ -5,15 +5,14 @@ import com.ebbinghaus.memory.app.domain.embedded.EMessageStateId;
 import com.ebbinghaus.memory.app.model.UserState;
 import com.ebbinghaus.memory.app.repository.MessageStateRepository;
 import com.ebbinghaus.memory.app.service.ChatMessageStateService;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor

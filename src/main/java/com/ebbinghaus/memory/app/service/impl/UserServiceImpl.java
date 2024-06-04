@@ -16,8 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.User;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import static com.ebbinghaus.memory.app.utils.Constants.AVAILABLE_LANGUAGES_MAP;
