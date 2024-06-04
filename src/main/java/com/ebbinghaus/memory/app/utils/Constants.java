@@ -1,6 +1,6 @@
 package com.ebbinghaus.memory.app.utils;
 
-import com.ebbinghaus.memory.app.domain.LanguageData;
+import com.ebbinghaus.memory.app.model.LanguageData;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.HashMap;
@@ -8,6 +8,7 @@ import java.util.Map;
 
 public class Constants {
 
+    public static final String DEFAULT_LANGUAGE_CODE = "en";
     public static final int DEFAULT_DATA_PAGE_SIZE = 5;
     public static final int DEFAULT_CATEGORY_PAGE_SIZE = 5;
     public static final TypeReference<HashMap<String, String>> MAP_TYPE_REF =
@@ -71,6 +72,6 @@ public class Constants {
             Map.ofEntries(
                     Map.entry("en", new LanguageData("\uD83C\uDDFA\uD83C\uDDF8", "English")),
                     Map.entry("uk", new LanguageData("\uD83C\uDDFA\uD83C\uDDE6", "Українська")),
-                    Map.entry("ru", new LanguageData("\uD83C\uDDF7\uD83C\uDDFA","Русский"))
+                    Map.entry("ru", new LanguageData("\uD83C\uDDF7\uD83C\uDDFA", "Русский"))
             );
 }

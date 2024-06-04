@@ -25,8 +25,6 @@ public class EUser {
 
     private String languageCode;
 
-    //private String languageEmoji;
-
     @CreationTimestamp
     private LocalDateTime createdDateTime;
 

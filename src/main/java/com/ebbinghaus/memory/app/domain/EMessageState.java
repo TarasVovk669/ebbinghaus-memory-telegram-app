@@ -1,0 +1,28 @@
+package com.ebbinghaus.memory.app.domain;
+
+import com.ebbinghaus.memory.app.domain.embedded.EMessageStateId;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+import java.util.HashSet;
+import java.util.Set;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@Entity
+@Table(name = "e_message_state")
+public class EMessageState {
+
+    @EmbeddedId
+    private EMessageStateId id;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    private Set<Integer> messageIds = new HashSet<>();
+}

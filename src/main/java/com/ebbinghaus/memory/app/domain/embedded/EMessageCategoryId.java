@@ -1,4 +1,4 @@
-package com.ebbinghaus.memory.app.domain;
+package com.ebbinghaus.memory.app.domain.embedded;
 
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;

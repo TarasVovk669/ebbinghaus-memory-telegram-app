@@ -1,8 +1,10 @@
 package com.ebbinghaus.memory.app.service.impl;
 
 import com.ebbinghaus.memory.app.domain.EUser;
+import com.ebbinghaus.memory.app.domain.EUserState;
 import com.ebbinghaus.memory.app.model.UserState;
 import com.ebbinghaus.memory.app.repository.UserRepository;
+import com.ebbinghaus.memory.app.repository.UserStateRepository;
 import com.ebbinghaus.memory.app.service.UserService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -19,30 +21,16 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.ebbinghaus.memory.app.utils.Constants.AVAILABLE_LANGUAGES_MAP;
+import static com.ebbinghaus.memory.app.utils.Constants.DEFAULT_LANGUAGE_CODE;
 
 @Service
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private static final Map<Long, UserState> USER_STATE_MAP = new HashMap<>();
-
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
-    public static final String DEFAULT_LANGUAGE_CODE = "en";
 
     private final UserRepository userRepository;
-
-    @Override
-    public UserState getUserState(Long userId) {
-        log.info("Get user_state with id: {}", userId);
-        return USER_STATE_MAP.get(userId);
-    }
-
-    @Override
-    public void setUserState(Long userId, UserState state) {
-        log.info("Add user with id: {} and state: {}", userId, state);
-        USER_STATE_MAP.put(userId, state);
-    }
-
+    private final UserStateRepository userStateRepository;
 
     @Override
     public void addUser(User user) {
@@ -79,5 +67,27 @@ public class UserServiceImpl implements UserService {
     public void updateLanguageCode(Long userId, String languageCode) {
         log.info("Update language code: {} for user_id: {}", languageCode, userId);
         userRepository.updateUserLanguageCode(userId, languageCode);
+    }
+
+    @Override
+    @Cacheable(value = "get_user_state", key = "#userId")
+    public UserState getUserState(Long userId) {
+        log.info("Get user_state with id: {}", userId);
+
+        return userStateRepository.findById(userId)
+                .map(EUserState::getState)
+                .orElse(UserState.DEFAULT);
+    }
+
+    @Override
+    @Caching(evict = {
+            @CacheEvict(value = "get_user_state", key = "#userId")})
+    public void setUserState(Long userId, UserState state) {
+        log.info("Add user_state with id: {} and state: {}", userId, state);
+
+        userStateRepository.save(EUserState.builder()
+                .userId(userId)
+                .state(state)
+                .build());
     }
 }

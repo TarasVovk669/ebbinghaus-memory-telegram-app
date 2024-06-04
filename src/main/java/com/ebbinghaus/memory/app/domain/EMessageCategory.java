@@ -1,5 +1,6 @@
 package com.ebbinghaus.memory.app.domain;
 
+import com.ebbinghaus.memory.app.domain.embedded.EMessageCategoryId;
 import jakarta.persistence.*;
 import lombok.*;
 

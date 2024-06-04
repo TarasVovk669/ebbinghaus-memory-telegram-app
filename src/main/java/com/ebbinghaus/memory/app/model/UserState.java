@@ -8,5 +8,6 @@ public enum UserState {
     WAIT_EDIT_TEXT,
     SHORT_MESSAGE,
     DATA_LIST,
-    CATEGORY_DATA_LIST
+    CATEGORY_DATA_LIST,
+    DEFAULT
 }

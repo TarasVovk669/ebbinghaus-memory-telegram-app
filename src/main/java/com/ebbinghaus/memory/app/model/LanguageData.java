@@ -1,4 +1,4 @@
-package com.ebbinghaus.memory.app.domain;
+package com.ebbinghaus.memory.app.model;
 
 public record LanguageData(String emoji, String name) {
 }

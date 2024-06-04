@@ -58,24 +58,22 @@ public class SchedulerServiceImpl extends QuartzJobBean implements SchedulerServ
         var messageString = parseMessage(message, false,
                 suffix);
 
-        //send message
-        var msg =
-                manageMsgType(message)
-                        .sendMessage(MessageDataRequest.builder()
-                                        .chatId(Long.valueOf(jobDataMap.getString("chat_id")))
-                                        .messageText(messageString)
-                                        .messageId(message.getId().intValue())
-                                        .entities(
-                                                manageMessageEntitiesLongMessage(
-                                                        message.getMessageEntities()
-                                                                .stream()
-                                                                .map(EMessageEntity::getValue)
-                                                                .toList(),
-                                                        messageString, true, suffix, objectMapper))
-                                        .replyKeyboard(keyboardFactoryService.getMessageKeyboard(message.getId(), languageCode))
-                                        .file(message.getFile())
-                                        .build(),
-                                telegramClient);
+        manageMsgType(message)
+                .sendMessage(MessageDataRequest.builder()
+                                .chatId(Long.valueOf(jobDataMap.getString("chat_id")))
+                                .messageText(messageString)
+                                .messageId(message.getId().intValue())
+                                .entities(
+                                        manageMessageEntitiesLongMessage(
+                                                message.getMessageEntities()
+                                                        .stream()
+                                                        .map(EMessageEntity::getValue)
+                                                        .toList(),
+                                                messageString, true, suffix, objectMapper))
+                                .replyKeyboard(keyboardFactoryService.getMessageKeyboard(message.getId(), languageCode))
+                                .file(message.getFile())
+                                .build(),
+                        telegramClient);
 
         try {
             scheduler.deleteJob(context.getJobDetail().getKey());

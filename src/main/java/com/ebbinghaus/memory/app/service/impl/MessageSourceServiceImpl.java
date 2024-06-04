@@ -15,8 +15,6 @@ public class MessageSourceServiceImpl implements MessageSourceService {
 
     @Override
     public String getMessage(String key, String locale) {
-        String s = messageSource.getMessage(key, new Object[0], Locale.of(locale));
-
-        return s;
+        return messageSource.getMessage(key, new Object[0], Locale.of(locale));
     }
 }

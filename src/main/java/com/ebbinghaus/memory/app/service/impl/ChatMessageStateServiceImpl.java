@@ -1,24 +1,28 @@
 package com.ebbinghaus.memory.app.service.impl;
 
+import com.ebbinghaus.memory.app.domain.EMessageState;
+import com.ebbinghaus.memory.app.domain.embedded.EMessageStateId;
 import com.ebbinghaus.memory.app.model.UserState;
+import com.ebbinghaus.memory.app.repository.MessageStateRepository;
 import com.ebbinghaus.memory.app.service.ChatMessageStateService;
 import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
+@RequiredArgsConstructor
 public class ChatMessageStateServiceImpl implements ChatMessageStateService {
-
-    // todo: change for db
-    private static final Map<String, Map<UserState, Set<Integer>>> CHAT_DATA_MAP =
-            new ConcurrentHashMap<>();
 
     private static final Logger log = LoggerFactory.getLogger(ChatMessageStateServiceImpl.class);
     public static final HashSet<Integer> HASH_SET = new HashSet<>();
+
+    private final MessageStateRepository messageStateRepository;
 
     @Override
     public void addMessage(
@@ -30,48 +34,43 @@ public class ChatMessageStateServiceImpl implements ChatMessageStateService {
                 userId,
                 state);
 
-        String key = manageKey(userId, chatId);
+        var id = EMessageStateId.builder()
+                .chatId(chatId)
+                .userId(userId)
+                .state(state)
+                .build();
 
-        CHAT_DATA_MAP.compute(
-                key,
-                (k, stateMap) -> {
-                    if (null == stateMap) {
-                        stateMap = new HashMap<>();
-                    }
-
-                    stateMap.compute(
-                            state,
-                            (s, messageList) -> {
-                                if (messageList == null) {
-                                    messageList = new HashSet<>();
-                                }
-                                messageList.addAll(messageIds);
-                                return messageList;
-                            });
-                    return stateMap;
-                });
+        messageStateRepository.findById(id)
+                .ifPresentOrElse(
+                        ms -> {
+                            ms.getMessageIds().addAll(messageIds);
+                            messageStateRepository.save(ms);
+                        },
+                        () -> messageStateRepository.save(EMessageState.builder()
+                                .id(id)
+                                .messageIds(new HashSet<>(messageIds))
+                                .build()));
     }
 
     @Override
     public Set<Integer> getMessages(Long userId, Long chatId, UserState state) {
         log.info("Get messages - chat_id: {}, user_id: {} and state: {}", chatId, userId, state);
 
-        return Optional.ofNullable(CHAT_DATA_MAP.get(manageKey(userId, chatId)))
-                .map(map -> map.get(state))
-                .orElse(HASH_SET);
+        return messageStateRepository.findById(EMessageStateId.builder()
+                .chatId(chatId)
+                .userId(userId)
+                .state(state)
+                .build()).map(EMessageState::getMessageIds).orElse(HASH_SET);
     }
 
     @Override
     public void clearStateMessages(Long userId, Long chatId, UserState state) {
         log.info("clear messages - chat_id: {}, user_id: {} and state: {}", chatId, userId, state);
 
-        var userStateListMap = CHAT_DATA_MAP.get(manageKey(userId, chatId));
-        if (userStateListMap != null) {
-            userStateListMap.remove(state);
-        }
-    }
-
-    private static String manageKey(@NotNull Long userId, @NotNull Long chatId) {
-        return chatId.toString().concat(userId.toString());
+        messageStateRepository.deleteById(EMessageStateId.builder()
+                .chatId(chatId)
+                .userId(userId)
+                .state(state)
+                .build());
     }
 }
