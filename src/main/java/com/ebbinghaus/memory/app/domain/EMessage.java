@@ -37,6 +37,10 @@ public class EMessage {
     @NotNull
     private Integer executionStep;
 
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private EMessageType type;
+
     @Embedded
     private File file;
 

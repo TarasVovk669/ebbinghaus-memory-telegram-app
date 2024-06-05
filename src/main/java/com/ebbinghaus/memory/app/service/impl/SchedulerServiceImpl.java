@@ -3,6 +3,7 @@ package com.ebbinghaus.memory.app.service.impl;
 import com.ebbinghaus.memory.app.bot.KeyboardFactoryService;
 import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.domain.EMessageEntity;
+import com.ebbinghaus.memory.app.domain.EMessageType;
 import com.ebbinghaus.memory.app.model.InputUserData;
 import com.ebbinghaus.memory.app.model.MessageDataRequest;
 import com.ebbinghaus.memory.app.service.MessageService;
@@ -70,7 +71,10 @@ public class SchedulerServiceImpl extends QuartzJobBean implements SchedulerServ
                                                         .map(EMessageEntity::getValue)
                                                         .toList(),
                                                 messageString, true, suffix, objectMapper))
-                                .replyKeyboard(keyboardFactoryService.getMessageKeyboard(message.getId(), languageCode))
+                                .replyKeyboard(keyboardFactoryService.getMessageKeyboard(
+                                        message.getId(),
+                                        languageCode,
+                                        message.getType().equals(EMessageType.FORWARDED)))
                                 .file(message.getFile())
                                 .build(),
                         telegramClient);

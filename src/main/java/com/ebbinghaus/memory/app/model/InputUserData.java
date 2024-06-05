@@ -33,6 +33,8 @@ public class InputUserData {
 
   private String ownerName;
 
+  private boolean isForwardedMessage;
+
   private List<MessageEntity> messageEntities;
 
   private MessageType messageType;

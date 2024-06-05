@@ -31,6 +31,7 @@ public class Constants {
     public static final String CONTACT_INFO_CALLBACK = "cic";
 
     public static final String UNCATEGORIZED = "#uncategorized";
+    public static final String FORWARDED = "#forwarded";
     public static final int FIRST_EXECUTION_STEP = 1;
     public static final String INFO_LIST = "\uD83D\uDCCB\u00A0";
     public static final String CATEGORY_LIST = "\uD83C\uDFAF\u00A0";

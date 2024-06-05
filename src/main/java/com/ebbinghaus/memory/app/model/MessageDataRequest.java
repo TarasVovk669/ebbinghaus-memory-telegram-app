@@ -30,5 +30,6 @@ public class MessageDataRequest {
   private File file;
 
   private InlineKeyboardMarkup replyKeyboard;
+
   private Long replyMessageId;
 }
