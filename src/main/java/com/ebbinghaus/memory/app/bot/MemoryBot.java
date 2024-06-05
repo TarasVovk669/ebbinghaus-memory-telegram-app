@@ -31,7 +31,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.ebbinghaus.memory.app.model.UserState.*;
@@ -45,6 +45,7 @@ import static java.time.ZoneOffset.UTC;
 public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(MemoryBot.class);
+    public static final long ZERO_COUNT = 0L;
 
 
     private final String token;
@@ -59,9 +60,9 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
     private final MessageSourceService messageSourceService;
     private final KeyboardFactoryService keyboardFactoryService;
 
-    private static final Map<String, Consumer<InputUserData>> consumerCommandMap = new HashMap<>();
-    private static final Map<String, Consumer<InputUserData>> consumerCallbackDataMap = new HashMap<>();
-    private static final Map<UserState, Consumer<InputUserData>> consumerUserStateMap = new HashMap<>();
+    private static final Map<String, Function<InputUserData, Boolean>> functionCommandMap = new HashMap<>();
+    private static final Map<String, Function<InputUserData, Boolean>> functionCallbackDataMap = new HashMap<>();
+    private static final Map<UserState, Function<InputUserData, Boolean>> functionUserStateMap = new HashMap<>();
 
     public MemoryBot(
             @Value("${bot.token}") String token,
@@ -85,29 +86,29 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
         this.messageSourceService = messageSourceService;
         this.keyboardFactoryService = keyboardFactoryService;
 
-        consumerCommandMap.put(START, handleStartMessage);
-        consumerCommandMap.put(ADD_NEW_INFO, handleButtonAddNewInfo);
-        consumerCommandMap.put(INFO_LIST, handleButtonInfoList);
-        consumerCommandMap.put(CATEGORY_LIST, handleButtonCategoryList);
-        consumerCommandMap.put(PROFILE_LIST, handleProfileMainMenu);
+        functionCommandMap.put(START, handleStartMessage);
+        functionCommandMap.put(ADD_NEW_INFO, handleButtonAddNewInfo);
+        functionCommandMap.put(INFO_LIST, handleButtonInfoList);
+        functionCommandMap.put(CATEGORY_LIST, handleButtonCategoryList);
+        functionCommandMap.put(PROFILE_LIST, handleProfileMainMenu);
 
-        consumerCallbackDataMap.put(VIEW_MESSAGE_CALLBACK, handleMessageView);
-        consumerCallbackDataMap.put(VIEW_SHORT_MESSAGE_CALLBACK, handleShortMessageView);
-        consumerCallbackDataMap.put(EDIT_MESSAGE_CALLBACK, handleMessageEdit);
-        consumerCallbackDataMap.put(DELETE_MESSAGE_CALLBACK, handleMessageDelete);
-        consumerCallbackDataMap.put(BACK_MESSAGE_CALLBACK, handleMessageBack);
-        consumerCallbackDataMap.put(NAVIGATION_DATA_LIST_CALLBACK, handleButtonInfoList);
-        consumerCallbackDataMap.put(NAVIGATION_CATEGORY_LIST_CALLBACK, handleButtonCategoryList);
-        consumerCallbackDataMap.put(EDIT_CONCRETE_MESSAGE_CALLBACK, handleEditConcreteMessage);
-        consumerCallbackDataMap.put(DELETE_MESSAGE_YES_CALLBACK, handleMessageDeleteYes);
-        consumerCallbackDataMap.put(DELETE_MESSAGE_NO_CALLBACK, handleMessageDeleteNo);
-        consumerCallbackDataMap.put(VIEW_PROFILE_LANGUAGE_CALLBACK, handleMessageChangeLanguage);
-        consumerCallbackDataMap.put(PROFILE_MAIN_MENU_CALLBACK, handleProfileMainMenuBack);
-        consumerCallbackDataMap.put(CHANGE_PROFILE_LANGUAGE_CALLBACK, handleChangeLanguage);
-        consumerCallbackDataMap.put(CONTACT_INFO_CALLBACK, handleContactInfo);
+        functionCallbackDataMap.put(VIEW_MESSAGE_CALLBACK, handleMessageView);
+        functionCallbackDataMap.put(VIEW_SHORT_MESSAGE_CALLBACK, handleShortMessageView);
+        functionCallbackDataMap.put(EDIT_MESSAGE_CALLBACK, handleMessageEdit);
+        functionCallbackDataMap.put(DELETE_MESSAGE_CALLBACK, handleMessageDelete);
+        functionCallbackDataMap.put(BACK_MESSAGE_CALLBACK, handleMessageBack);
+        functionCallbackDataMap.put(NAVIGATION_DATA_LIST_CALLBACK, handleButtonInfoList);
+        functionCallbackDataMap.put(NAVIGATION_CATEGORY_LIST_CALLBACK, handleButtonCategoryList);
+        functionCallbackDataMap.put(EDIT_CONCRETE_MESSAGE_CALLBACK, handleEditConcreteMessage);
+        functionCallbackDataMap.put(DELETE_MESSAGE_YES_CALLBACK, handleMessageDeleteYes);
+        functionCallbackDataMap.put(DELETE_MESSAGE_NO_CALLBACK, handleMessageDeleteNo);
+        functionCallbackDataMap.put(VIEW_PROFILE_LANGUAGE_CALLBACK, handleMessageChangeLanguage);
+        functionCallbackDataMap.put(PROFILE_MAIN_MENU_CALLBACK, handleProfileMainMenuBack);
+        functionCallbackDataMap.put(CHANGE_PROFILE_LANGUAGE_CALLBACK, handleChangeLanguage);
+        functionCallbackDataMap.put(CONTACT_INFO_CALLBACK, handleContactInfo);
 
-        consumerUserStateMap.put(WAIT_TEXT, handleInputText);
-        consumerUserStateMap.put(WAIT_FORWARDED_MESSAGE, handleInputText);
+        functionUserStateMap.put(WAIT_TEXT, handleInputText);
+        functionUserStateMap.put(WAIT_FORWARDED_MESSAGE, handleInputText);
     }
 
     @Override
@@ -124,7 +125,6 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
     public void consume(Update update) {
         if (update.hasMessage()) {
             var msgType = manageMsgType(update.getMessage());
-
             var isForwardedMessage = null != update.getMessage().getForwardOrigin()
                     || null != update.getMessage().getForwardFromMessageId()
                     || null != update.getMessage().getForwardDate();
@@ -160,13 +160,13 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
             Optional.ofNullable(inputUserData.getMessageText())
                     .ifPresentOrElse(messageText -> Optional.ofNullable(
                                             messageText.startsWith("/")
-                                                    ? consumerCommandMap.get(inputUserData.getMessageText().split(" ")[0])
-                                                    : consumerCommandMap.get(extractSubstringForButton(inputUserData.getMessageText())))
-                                    .ifPresentOrElse(consumer -> consumer.accept(inputUserData),
-                                            () -> Optional.ofNullable(consumerUserStateMap.get(inputUserData.getState()))
-                                                    .ifPresent(consumer -> consumer.accept(inputUserData))),
-                            () -> Optional.ofNullable(consumerUserStateMap.get(inputUserData.getState()))
-                                    .ifPresent(consumer -> consumer.accept(inputUserData)));
+                                                    ? functionCommandMap.get(inputUserData.getMessageText().split(" ")[0])
+                                                    : functionCommandMap.get(extractSubstringForButton(inputUserData.getMessageText())))
+                                    .ifPresentOrElse(function -> function.apply(inputUserData),
+                                            () -> Optional.ofNullable(functionUserStateMap.get(inputUserData.getState()))
+                                                    .ifPresent(function -> function.apply(inputUserData))),
+                            () -> Optional.ofNullable(functionUserStateMap.get(inputUserData.getState()))
+                                    .ifPresent(function -> function.apply(inputUserData)));
         } else if (update.hasCallbackQuery()) {
             var inputMessage = (Message) update.getCallbackQuery().getMessage();
             var msgType = manageMsgType(inputMessage);
@@ -194,7 +194,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                             .keyboardFactoryService(keyboardFactoryService)
                             .build();
 
-            consumerCallbackDataMap.get(callBackData.get(OPERATION)).accept(inputUserData);
+            functionCallbackDataMap.get(callBackData.get(OPERATION)).apply(inputUserData);
         } else if (update.hasEditedMessage()) {
             var inputMessage = update.getEditedMessage();
             var msgType = manageMsgType(inputMessage);
@@ -221,7 +221,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                             .keyboardFactoryService(keyboardFactoryService)
                             .build();
 
-            consumerCallbackDataMap.get(EDIT_CONCRETE_MESSAGE_CALLBACK).accept(inputUserData);
+            functionCallbackDataMap.get(EDIT_CONCRETE_MESSAGE_CALLBACK).apply(inputUserData);
         }
     }
 
@@ -253,7 +253,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
         }
     }
 
-    private final Consumer<InputUserData> handleStartMessage =
+    private final Function<InputUserData, Boolean> handleStartMessage =
             userData -> {
 
                 sendMessage(
@@ -264,10 +264,11 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                         userData.getKeyboardFactoryService().getMainMenuKeyboard(userData.getLanguageCode()));
 
                 userData.getUserService().addUser(userData.getUser());
+                return Boolean.TRUE;
             };
 
 
-    private final Consumer<InputUserData> handleProfileMainMenu =
+    private final Function<InputUserData, Boolean> handleProfileMainMenu =
             userData -> {
                 deleteMessage(userData.getChatId(), userData.getMessageId());
 
@@ -277,9 +278,10 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                 "messages.profile",
                                 userData.getLanguageCode()), userData.getUser().getFirstName()),
                         userData.getKeyboardFactoryService().getProfileKeyboard(userData.getLanguageCode()));
+                return Boolean.TRUE;
             };
 
-    private final Consumer<InputUserData> handleProfileMainMenuBack =
+    private final Function<InputUserData, Boolean> handleProfileMainMenuBack =
             userData -> {
                 sendEditMessage(
                         userData.getChatId(),
@@ -289,9 +291,10 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                         userData.getKeyboardFactoryService().getProfileKeyboard(userData.getLanguageCode()),
                         null,
                         userData.getMessageId());
+                return Boolean.TRUE;
             };
 
-    private final Consumer<InputUserData> handleChangeLanguage =
+    private final Function<InputUserData, Boolean> handleChangeLanguage =
             userData -> {
                 deleteMessage(userData.getChatId(), userData.getMessageId());
 
@@ -304,9 +307,10 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                 "messages.profile.success-change",
                                 newLanguageCode), userData.getUser().getFirstName()),
                         userData.getKeyboardFactoryService().getMainMenuKeyboard(newLanguageCode));
+                return Boolean.TRUE;
             };
 
-    private final Consumer<InputUserData> handleContactInfo =
+    private final Function<InputUserData, Boolean> handleContactInfo =
             userData -> {
                 var text = String.format(userData.getMessageSourceService()
                                 .getMessage("messages.profile.contact-info.text", userData.getLanguageCode()),
@@ -321,11 +325,18 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                 .length(userData.getOwnerName().length())
                                 .build()),
                         userData.getMessageId());
+                return Boolean.TRUE;
             };
 
-    // refactor with db
-    private final Consumer<InputUserData> handleInputText =
+    private final Function<InputUserData, Boolean> handleInputText =
             userData -> {
+                if (!userData.getMessageType().isAllowedSize(userData.getMessageText().length())) {
+                    sendMessage(userData.getChatId(),
+                            userData.getMessageSourceService().getMessage("messages.error.length-allowed", userData.getLanguageCode()));
+
+                    throw new RuntimeException("Message is to long for storing");
+                }
+
                 var message = userData.getMessageService().addMessage(parseInput(userData));
                 var suffix = userData.getMessageSourceService().getMessage("messages.suffix.execution-time", userData.getLanguageCode());
                 var messageString = parseMessage(message, false, suffix);
@@ -353,6 +364,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
                 userData.getSchedulerService().scheduleMessage(message, userData);
                 userData.getUserService().setUserState(userData.getUser().getId(), MAIN_MENU);
+                return Boolean.TRUE;
             };
 
     private List<MessageEntity> manageMessageEntitiesShortMessage(
@@ -406,7 +418,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
         return entities;
     }
 
-    private final Consumer<InputUserData> handleButtonAddNewInfo =
+    private final Function<InputUserData, Boolean> handleButtonAddNewInfo =
             userData -> {
                 cleanMessagesInStatus(userData, List.of(WAIT_EDIT_TEXT_CONCRETE));
                 deleteMessage(userData.getChatId(), userData.getMessageId());
@@ -421,9 +433,10 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                 List.of(message.getMessageId()));
 
                 userData.getUserService().setUserState(userData.getUser().getId(), WAIT_TEXT);
+                return Boolean.TRUE;
             };
 
-    private final Consumer<InputUserData> handleButtonInfoList =
+    private final Function<InputUserData, Boolean> handleButtonInfoList =
             userData -> {
                 clearMessages(userData, WAIT_EDIT_TEXT_CONCRETE);
 
@@ -440,6 +453,15 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                         page,
                                         size,
                                         Sort.by(Sort.Order.desc("id")));
+
+                if (messages.getTotalElements() == ZERO_COUNT) {
+                    sendMessage(userData.getChatId(),
+                            userData
+                                    .getMessageSourceService()
+                                    .getMessage("messages.collection.empty", userData.getLanguageCode()));
+
+                    return Boolean.FALSE;
+                }
 
                 var result =
                         new StringBuilder(
@@ -550,9 +572,10 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                                     DATA_LIST,
                                                     List.of(msg.getMessageId()));
                                 });
+                return Boolean.TRUE;
             };
 
-    private final Consumer<InputUserData> handleButtonCategoryList =
+    private final Function<InputUserData, Boolean> handleButtonCategoryList =
             userData -> {
                 clearMessages(userData, WAIT_EDIT_TEXT_CONCRETE);
 
@@ -564,6 +587,15 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                 .getCategoryService()
                                 .getCategories(
                                         userData.getUser().getId(), page, size, Sort.by(Sort.Order.desc("id")));
+
+                if (categories.getTotalElements() == ZERO_COUNT) {
+                    sendMessage(userData.getChatId(),
+                            userData
+                                    .getMessageSourceService()
+                                    .getMessage("messages.collection.empty", userData.getLanguageCode()));
+
+                    return Boolean.FALSE;
+                }
 
                 var result =
                         new StringBuilder(
@@ -670,6 +702,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                                     CATEGORY_DATA_LIST,
                                                     List.of(msg.getMessageId()));
                                 });
+                return Boolean.TRUE;
             };
 
     @NotNull
@@ -767,7 +800,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 .orElse(0);
     }
 
-    private final Consumer<InputUserData> handleMessageView =
+    private final Function<InputUserData, Boolean> handleMessageView =
             userData -> {
                 var message =
                         userData
@@ -796,9 +829,10 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                         .file(message.getFile())
                                         .build(),
                                 userData.getTelegramClient());
+                return Boolean.TRUE;
             };
 
-    private final Consumer<InputUserData> handleShortMessageView =
+    private final Function<InputUserData, Boolean> handleShortMessageView =
             userData -> {
                 clearMessages(userData, SHORT_MESSAGE);
 
@@ -839,9 +873,10 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                 userData.getChatId(),
                                 SHORT_MESSAGE,
                                 List.of(msg.getMessageId()));
+                return Boolean.TRUE;
             };
 
-    private final Consumer<InputUserData> handleMessageBack =
+    private final Function<InputUserData, Boolean> handleMessageBack =
             userData -> {
                 var message =
                         userData
@@ -871,9 +906,10 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                         .file(message.getFile())
                                         .build(),
                                 userData.getTelegramClient());
+                return Boolean.TRUE;
             };
 
-    private final Consumer<InputUserData> handleMessageEdit =
+    private final Function<InputUserData, Boolean> handleMessageEdit =
             userData -> {
                 clearMessages(userData, WAIT_EDIT_TEXT);
 
@@ -902,9 +938,10 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                 userData.getChatId(),
                                 WAIT_EDIT_TEXT,
                                 List.of(msg.getMessageId()));
+                return Boolean.TRUE;
             };
 
-    private final Consumer<InputUserData> handleMessageDelete =
+    private final Function<InputUserData, Boolean> handleMessageDelete =
             userData -> {
                 var messageId = Long.valueOf(userData.getCallBackData().get(MESSAGE_ID));
 
@@ -920,18 +957,20 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                         .file(userData.getFile())
                                         .build(),
                                 userData.getTelegramClient());
+                return Boolean.TRUE;
             };
 
-    private final Consumer<InputUserData> handleMessageDeleteYes =
+    private final Function<InputUserData, Boolean> handleMessageDeleteYes =
             userData -> {
                 deleteMessage(userData.getChatId(), userData.getMessageId());
 
                 userData
                         .getMessageService()
                         .deleteMessage(Long.valueOf(userData.getCallBackData().get(MESSAGE_ID)));
+                return Boolean.TRUE;
             };
 
-    private final Consumer<InputUserData> handleMessageDeleteNo =
+    private final Function<InputUserData, Boolean> handleMessageDeleteNo =
             userData -> {
                 var message =
                         userData
@@ -962,9 +1001,10 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                         .file(message.getFile())
                                         .build(),
                                 userData.getTelegramClient());
+                return Boolean.TRUE;
             };
 
-    private final Consumer<InputUserData> handleMessageChangeLanguage =
+    private final Function<InputUserData, Boolean> handleMessageChangeLanguage =
             userData -> {
                 var user = userData.getUserService().getUser(userData.getUser().getId());
 
@@ -977,9 +1017,10 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                         null,
                         userData.getMessageId()
                 );
+                return Boolean.TRUE;
             };
 
-    private final Consumer<InputUserData> handleEditConcreteMessage =
+    private final Function<InputUserData, Boolean> handleEditConcreteMessage =
             userData -> {
                 clearMessages(userData, List.of(WAIT_EDIT_TEXT, WAIT_EDIT_TEXT_CONCRETE));
                 var editedMessage =
@@ -1016,6 +1057,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                         .file(editedMessage.getFile())
                                         .build(),
                                 userData.getTelegramClient());
+                return Boolean.TRUE;
             };
 
     private Message sendMessage(long chatId, String text) {

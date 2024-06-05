@@ -20,222 +20,245 @@ import java.util.List;
 import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
 
 public enum MessageType {
-  SMPL {
-    @Override
-    public List<MessageEntity> getMsgEntities(Message message) {
-      return message.getEntities();
-    }
+    SMPL {
+        @Override
+        public List<MessageEntity> getMsgEntities(Message message) {
+            return message.getEntities();
+        }
 
-    @Override
-    public String getMsgText(Message message) {
-      return message.getText();
-    }
+        @Override
+        public String getMsgText(Message message) {
+            return message.getText();
+        }
 
-    @Override
-    public File getFile(Message message) {
-      return null;
-    }
+        @Override
+        public File getFile(Message message) {
+            return null;
+        }
 
-    @Override
-    public Message sendMessage(MessageDataRequest data, TelegramClient telegramClient) {
-      return doTry(
-          () ->
-              telegramClient.execute(
-                  SendMessage.builder()
-                      .chatId(data.getChatId())
-                      .text(data.getMessageText())
-                      .parseMode(
-                          data.getEntities() == null || data.getEntities().isEmpty()
-                              ? "markdown"
-                              : null)
-                      .replyMarkup(data.getReplyKeyboard())
-                      .entities(data.getEntities())
-                      .replyToMessageId(
-                          null != data.getReplyMessageId()
-                              ? data.getReplyMessageId().intValue()
-                              : null)
-                      .build()));
-    }
+        @Override
+        public Message sendMessage(MessageDataRequest data, TelegramClient telegramClient) {
+            return doTry(
+                    () ->
+                            telegramClient.execute(
+                                    SendMessage.builder()
+                                            .chatId(data.getChatId())
+                                            .text(data.getMessageText())
+                                            .parseMode(
+                                                    data.getEntities() == null || data.getEntities().isEmpty()
+                                                            ? "markdown"
+                                                            : null)
+                                            .replyMarkup(data.getReplyKeyboard())
+                                            .entities(data.getEntities())
+                                            .replyToMessageId(
+                                                    null != data.getReplyMessageId()
+                                                            ? data.getReplyMessageId().intValue()
+                                                            : null)
+                                            .build()));
+        }
 
-    @Override
-    public void editMessage(MessageDataRequest data, TelegramClient telegramClient) {
-      doTry(
-          () ->
-              telegramClient.execute(
-                  EditMessageText.builder()
-                      .chatId(data.getChatId())
-                      .messageId(data.getMessageId())
-                      .text(data.getMessageText())
-                      .parseMode(
-                          data.getEntities() == null || data.getEntities().isEmpty()
-                              ? "markdown"
-                              : null)
-                      .replyMarkup(data.getReplyKeyboard())
-                      .entities(data.getEntities())
-                      .build()));
-    }
-  },
-  IMG {
-    @Override
-    public List<MessageEntity> getMsgEntities(Message message) {
-      return message.getCaptionEntities();
-    }
+        @Override
+        public void editMessage(MessageDataRequest data, TelegramClient telegramClient) {
+            doTry(
+                    () ->
+                            telegramClient.execute(
+                                    EditMessageText.builder()
+                                            .chatId(data.getChatId())
+                                            .messageId(data.getMessageId())
+                                            .text(data.getMessageText())
+                                            .parseMode(
+                                                    data.getEntities() == null || data.getEntities().isEmpty()
+                                                            ? "markdown"
+                                                            : null)
+                                            .replyMarkup(data.getReplyKeyboard())
+                                            .entities(data.getEntities())
+                                            .build()));
+        }
 
-    @Override
-    public String getMsgText(Message message) {
-      return message.getCaption();
-    }
+        @Override
+        public boolean isAllowedSize(Integer length) {
+            return length <= 4096;
+        }
+    },
+    IMG {
+        @Override
+        public List<MessageEntity> getMsgEntities(Message message) {
+            return message.getCaptionEntities();
+        }
 
-    @Override
-    public File getFile(Message message) {
-      return File.builder()
-          .fileId(message.getPhoto().getFirst().getFileId())
-          .fileType(FileType.PHOTO)
-          .build();
-    }
+        @Override
+        public String getMsgText(Message message) {
+            return message.getCaption();
+        }
 
-    @Override
-    public Message sendMessage(MessageDataRequest userData, TelegramClient telegramClient) {
-      return doTry(
-          () ->
-              telegramClient.execute(
-                  SendPhoto.builder()
-                      .chatId(userData.getChatId())
-                      .caption(userData.getMessageText())
-                      .captionEntities(userData.getEntities())
-                      .replyMarkup(userData.getReplyKeyboard())
-                      .photo(new InputFile(userData.getFile().getFileId()))
-                      .build()));
-    }
+        @Override
+        public File getFile(Message message) {
+            return File.builder()
+                    .fileId(message.getPhoto().getFirst().getFileId())
+                    .fileType(FileType.PHOTO)
+                    .build();
+        }
 
-    @Override
-    public void editMessage(MessageDataRequest data, TelegramClient telegramClient) {
-      doTry(
-          () ->
-              telegramClient.execute(
-                  EditMessageMedia.builder()
-                      .chatId(data.getChatId())
-                      .messageId(data.getMessageId())
-                      .media(
-                          InputMediaPhoto.builder()
-                              .caption(data.getMessageText())
-                              .captionEntities(data.getEntities())
-                              .media(data.getFile().getFileId())
-                              .build())
-                      .replyMarkup(data.getReplyKeyboard())
-                      .build()));
-    }
-  },
-  DOC {
-    @Override
-    public List<MessageEntity> getMsgEntities(Message message) {
-      return message.getCaptionEntities();
-    }
+        @Override
+        public Message sendMessage(MessageDataRequest userData, TelegramClient telegramClient) {
+            return doTry(
+                    () ->
+                            telegramClient.execute(
+                                    SendPhoto.builder()
+                                            .chatId(userData.getChatId())
+                                            .caption(userData.getMessageText())
+                                            .captionEntities(userData.getEntities())
+                                            .replyMarkup(userData.getReplyKeyboard())
+                                            .photo(new InputFile(userData.getFile().getFileId()))
+                                            .build()));
+        }
 
-    @Override
-    public String getMsgText(Message message) {
-      return message.getCaption();
-    }
+        @Override
+        public void editMessage(MessageDataRequest data, TelegramClient telegramClient) {
+            doTry(
+                    () ->
+                            telegramClient.execute(
+                                    EditMessageMedia.builder()
+                                            .chatId(data.getChatId())
+                                            .messageId(data.getMessageId())
+                                            .media(
+                                                    InputMediaPhoto.builder()
+                                                            .caption(data.getMessageText())
+                                                            .captionEntities(data.getEntities())
+                                                            .media(data.getFile().getFileId())
+                                                            .build())
+                                            .replyMarkup(data.getReplyKeyboard())
+                                            .build()));
+        }
 
-    @Override
-    public File getFile(Message message) {
-      return File.builder()
-          .fileId(message.getDocument().getFileId())
-          .fileType(FileType.DOCUMENT)
-          .build();
-    }
+        @Override
+        public boolean isAllowedSize(Integer length) {
+            return length <= 1024;
+        }
+    },
+    DOC {
+        @Override
+        public List<MessageEntity> getMsgEntities(Message message) {
+            return message.getCaptionEntities();
+        }
 
-    @Override
-    public Message sendMessage(MessageDataRequest userData, TelegramClient telegramClient) {
-      return doTry(
-          () ->
-              telegramClient.execute(
-                  SendDocument.builder()
-                      .chatId(userData.getChatId())
-                      .caption(userData.getMessageText())
-                      .captionEntities(userData.getEntities())
-                      .replyMarkup(userData.getReplyKeyboard())
-                      .document(new InputFile(userData.getFile().getFileId()))
-                      .build()));
-    }
+        @Override
+        public String getMsgText(Message message) {
+            return message.getCaption();
+        }
 
-    @Override
-    public void editMessage(MessageDataRequest data, TelegramClient telegramClient) {
-      doTry(
-          () ->
-              telegramClient.execute(
-                  EditMessageMedia.builder()
-                      .chatId(data.getChatId())
-                      .messageId(data.getMessageId())
-                      .media(
-                          InputMediaDocument.builder()
-                              .caption(data.getMessageText())
-                              .captionEntities(data.getEntities())
-                              .media(data.getFile().getFileId())
-                              .build())
-                      .replyMarkup(data.getReplyKeyboard())
-                      .build()));
-    }
-  },
-  VIDEO {
-    @Override
-    public List<MessageEntity> getMsgEntities(Message message) {
-      return message.getCaptionEntities();
-    }
+        @Override
+        public File getFile(Message message) {
+            return File.builder()
+                    .fileId(message.getDocument().getFileId())
+                    .fileType(FileType.DOCUMENT)
+                    .build();
+        }
 
-    @Override
-    public String getMsgText(Message message) {
-      return message.getCaption();
-    }
+        @Override
+        public Message sendMessage(MessageDataRequest userData, TelegramClient telegramClient) {
+            return doTry(
+                    () ->
+                            telegramClient.execute(
+                                    SendDocument.builder()
+                                            .chatId(userData.getChatId())
+                                            .caption(userData.getMessageText())
+                                            .captionEntities(userData.getEntities())
+                                            .replyMarkup(userData.getReplyKeyboard())
+                                            .document(new InputFile(userData.getFile().getFileId()))
+                                            .build()));
+        }
+
+        @Override
+        public void editMessage(MessageDataRequest data, TelegramClient telegramClient) {
+            doTry(
+                    () ->
+                            telegramClient.execute(
+                                    EditMessageMedia.builder()
+                                            .chatId(data.getChatId())
+                                            .messageId(data.getMessageId())
+                                            .media(
+                                                    InputMediaDocument.builder()
+                                                            .caption(data.getMessageText())
+                                                            .captionEntities(data.getEntities())
+                                                            .media(data.getFile().getFileId())
+                                                            .build())
+                                            .replyMarkup(data.getReplyKeyboard())
+                                            .build()));
+        }
+
+        @Override
+        public boolean isAllowedSize(Integer length) {
+            return length <= 1024;
+        }
+    },
+    VIDEO {
+        @Override
+        public List<MessageEntity> getMsgEntities(Message message) {
+            return message.getCaptionEntities();
+        }
+
+        @Override
+        public String getMsgText(Message message) {
+            return message.getCaption();
+        }
 
 
-    @Override
-    public File getFile(Message message) {
-      return File.builder()
-              .fileId(message.getVideo().getFileId())
-              .fileType(FileType.VIDEO)
-              .build();
-    }
-    @Override
-    public Message sendMessage(MessageDataRequest userData, TelegramClient telegramClient) {
-      return doTry(
-              () ->
-                      telegramClient.execute(
-                              SendVideo.builder()
-                                      .chatId(userData.getChatId())
-                                      .caption(userData.getMessageText())
-                                      .captionEntities(userData.getEntities())
-                                      .replyMarkup(userData.getReplyKeyboard())
-                                      .video(new InputFile(userData.getFile().getFileId()))
-                                      .build()));
-    }
+        @Override
+        public File getFile(Message message) {
+            return File.builder()
+                    .fileId(message.getVideo().getFileId())
+                    .fileType(FileType.VIDEO)
+                    .build();
+        }
 
-    @Override
-    public void editMessage(MessageDataRequest data, TelegramClient telegramClient) {
-      doTry(
-              () ->
-                      telegramClient.execute(
-                              EditMessageMedia.builder()
-                                      .chatId(data.getChatId())
-                                      .messageId(data.getMessageId())
-                                      .media(
-                                              InputMediaDocument.builder()
-                                                      .caption(data.getMessageText())
-                                                      .captionEntities(data.getEntities())
-                                                      .media(data.getFile().getFileId())
-                                                      .build())
-                                      .replyMarkup(data.getReplyKeyboard())
-                                      .build()));
-    }
-  };
+        @Override
+        public Message sendMessage(MessageDataRequest userData, TelegramClient telegramClient) {
+            return doTry(
+                    () ->
+                            telegramClient.execute(
+                                    SendVideo.builder()
+                                            .chatId(userData.getChatId())
+                                            .caption(userData.getMessageText())
+                                            .captionEntities(userData.getEntities())
+                                            .replyMarkup(userData.getReplyKeyboard())
+                                            .video(new InputFile(userData.getFile().getFileId()))
+                                            .build()));
+        }
 
-  public abstract List<MessageEntity> getMsgEntities(Message message);
+        @Override
+        public void editMessage(MessageDataRequest data, TelegramClient telegramClient) {
+            doTry(
+                    () ->
+                            telegramClient.execute(
+                                    EditMessageMedia.builder()
+                                            .chatId(data.getChatId())
+                                            .messageId(data.getMessageId())
+                                            .media(
+                                                    InputMediaDocument.builder()
+                                                            .caption(data.getMessageText())
+                                                            .captionEntities(data.getEntities())
+                                                            .media(data.getFile().getFileId())
+                                                            .build())
+                                            .replyMarkup(data.getReplyKeyboard())
+                                            .build()));
+        }
 
-  public abstract String getMsgText(Message message);
+        @Override
+        public boolean isAllowedSize(Integer length) {
+            return length <= 1024;
+        }
+    };
 
-  public abstract File getFile(Message message);
+    public abstract List<MessageEntity> getMsgEntities(Message message);
 
-  public abstract Message sendMessage(MessageDataRequest data, TelegramClient telegramClient);
+    public abstract String getMsgText(Message message);
 
-  public abstract void editMessage(MessageDataRequest data, TelegramClient telegramClient);
+    public abstract File getFile(Message message);
+
+    public abstract Message sendMessage(MessageDataRequest data, TelegramClient telegramClient);
+
+    public abstract void editMessage(MessageDataRequest data, TelegramClient telegramClient);
+
+    public abstract boolean isAllowedSize(Integer length);
 }
