@@ -339,7 +339,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
                 var message = userData.getMessageService().addMessage(parseInput(userData));
                 var suffix = userData.getMessageSourceService().getMessage("messages.suffix.execution-time", userData.getLanguageCode());
-                var messageString = parseMessage(message, false, suffix);
+                var messageString = parseMessage(message, false, suffix, userData.getLanguageCode(), userData.getMessageSourceService());
                 clearMessages(userData, WAIT_TEXT);
 
                 userData
@@ -486,7 +486,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 messages.forEach(
                         m -> {
                             var start = result.length();
-                            var msgString = parseMessage(m, false, false, true, SHORT_ELEMENT_LENGTH, suffix);
+                            var msgString = parseMessage(m, false, false, true, SHORT_ELEMENT_LENGTH, suffix, userData.getLanguageCode(), userData.getMessageSourceService());
                             result.append(count.get()).append(".\n");
 
                             entities.addAll(
@@ -810,7 +810,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 var suffix = userData
                         .getMessageSourceService()
                         .getMessage("messages.suffix.execution-time", userData.getLanguageCode());
-                var messageString = parseMessage(message, true, suffix);
+                var messageString = parseMessage(message, true, suffix, userData.getLanguageCode(), userData.getMessageSourceService());
 
                 manageMsgType(message)
                         .editMessage(
@@ -844,8 +844,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 var suffix = userData
                         .getMessageSourceService()
                         .getMessage("messages.suffix.execution-time", userData.getLanguageCode());
-                var messageString = parseMessage(message, false,
-                        suffix);
+                var messageString = parseMessage(message, false, suffix, userData.getLanguageCode(), userData.getMessageSourceService());
 
                 var msg =
                         manageMsgType(message)
@@ -886,7 +885,9 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                         .getMessageSourceService()
                         .getMessage("messages.suffix.execution-time", userData.getLanguageCode());
                 var messageString = parseMessage(message, false,
-                        suffix);
+                        suffix,
+                        userData.getLanguageCode(),
+                        userData.getMessageSourceService());
 
                 manageMsgType(message)
                         .editMessage(
@@ -980,8 +981,8 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 var suffix = userData
                         .getMessageSourceService()
                         .getMessage("messages.suffix.execution-time", userData.getLanguageCode());
-                var messageString = parseMessage(message, false, suffix
-                );
+                var messageString = parseMessage(message, false, suffix,
+                        userData.getLanguageCode(), userData.getMessageSourceService());
 
                 manageMsgType(message)
                         .editMessage(
@@ -1038,7 +1039,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                         .getMessageSourceService()
                         .getMessage("messages.suffix.execution-time", userData.getLanguageCode());
                 var messageString = parseMessage(editedMessage, false,
-                        suffix);
+                        suffix, userData.getLanguageCode(), userData.getMessageSourceService());
 
                 manageMsgType(editedMessage)
                         .sendMessage(
@@ -1125,8 +1126,12 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
         }
     }
 
-    public static String parseMessage(EMessage message, boolean isFull, String valueSuffix) {
-        return parseMessage(message, isFull, true, false, SHORT_MESSAGE_SYMBOL_QUANTITY, valueSuffix);
+    public static String parseMessage(EMessage message,
+                                      boolean isFull,
+                                      String valueSuffix,
+                                      String languageCode,
+                                      MessageSourceService messageSourceService) {
+        return parseMessage(message, isFull, true, false, SHORT_MESSAGE_SYMBOL_QUANTITY, valueSuffix, languageCode, messageSourceService);
     }
 
     private static String parseMessage(
@@ -1135,7 +1140,9 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
             boolean isExecutionTime,
             boolean isTrimParagraph,
             int maxLength,
-            String valueSuffix) {
+            String valueSuffix,
+            String languageCode,
+            MessageSourceService messageSourceService) {
         var result = new StringBuilder();
 
         if (null != message.getText() && !message.getText().isEmpty()) {
@@ -1158,7 +1165,11 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
             result
                     .append("\n\n")
                     .append(valueSuffix)
-                    .append(formatDuration(LocalDateTime.now(UTC), message.getNextExecutionDateTime()));
+                    .append(formatDuration(LocalDateTime.now(UTC),
+                            message.getNextExecutionDateTime(),
+                            languageCode,
+                            messageSourceService
+                    ));
         }
 
         return result.toString();

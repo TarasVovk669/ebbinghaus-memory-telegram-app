@@ -56,8 +56,12 @@ public class SchedulerServiceImpl extends QuartzJobBean implements SchedulerServ
         var languageCode = userService.getUser(message.getOwnerId()).getLanguageCode();
         var suffix = messageSourceService.getMessage("messages.suffix.execution-time",
                 languageCode);
-        var messageString = parseMessage(message, false,
-                suffix);
+        var messageString = parseMessage(
+                message,
+                false,
+                suffix,
+                languageCode,
+                messageSourceService);
 
         manageMsgType(message)
                 .sendMessage(MessageDataRequest.builder()
