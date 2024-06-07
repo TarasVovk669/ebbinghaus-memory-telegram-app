@@ -48,7 +48,7 @@ public class EMessage {
     @JoinColumn(name = "message_id")
     private Set<EMessageCategory> messageCategories = new HashSet<>();
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "e_message_id")
     private Set<EMessageEntity> messageEntities = new HashSet<>();
 

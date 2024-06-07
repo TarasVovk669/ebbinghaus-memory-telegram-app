@@ -64,7 +64,11 @@ public class UserServiceImpl implements UserService {
             @CacheEvict(value = "get_user_optional", key = "#userId")})
     public void updateLanguageCode(Long userId, String languageCode) {
         log.info("Update language code: {} for user_id: {}", languageCode, userId);
-        userRepository.updateUserLanguageCode(userId, languageCode);
+        userRepository.findById(userId)
+                .ifPresent(user -> {
+                    user.setLanguageCode(languageCode);
+                    userRepository.save(user);
+                });
     }
 
     @Override
