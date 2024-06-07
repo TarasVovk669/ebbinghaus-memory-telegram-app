@@ -9,6 +9,9 @@ public enum UserState {
     WAIT_EDIT_TEXT,
     SHORT_MESSAGE,
     DATA_LIST,
+    PROFILE,
+    HELP,
     CATEGORY_DATA_LIST,
+    MESSAGES_INVALID_INPUT,
     DEFAULT
 }

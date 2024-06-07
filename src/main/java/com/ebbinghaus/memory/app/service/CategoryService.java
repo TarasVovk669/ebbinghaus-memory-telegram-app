@@ -21,5 +21,5 @@ public interface CategoryService {
 
     List<CategoryMessageCountProj> findCategoryMessageCounts(Long ownerId, List<Long> ids);
 
-    void deleteById(Collection<Long> ids);
+    void deleteById(Collection<Long> ids, Long ownerId);
 }

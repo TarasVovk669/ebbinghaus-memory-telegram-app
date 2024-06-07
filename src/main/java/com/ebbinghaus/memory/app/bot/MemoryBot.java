@@ -17,6 +17,7 @@ import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessages;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
 
 import static com.ebbinghaus.memory.app.model.UserState.*;
 import static com.ebbinghaus.memory.app.utils.Constants.*;
+import static com.ebbinghaus.memory.app.utils.Constants.HELP;
 import static com.ebbinghaus.memory.app.utils.DateUtils.calculateNextExecutionTime;
 import static com.ebbinghaus.memory.app.utils.DateUtils.formatDuration;
 import static com.ebbinghaus.memory.app.utils.ObjectUtils.*;
@@ -45,7 +47,6 @@ import static java.time.ZoneOffset.UTC;
 public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(MemoryBot.class);
-    public static final long ZERO_COUNT = 0L;
 
 
     private final String token;
@@ -87,6 +88,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
         this.keyboardFactoryService = keyboardFactoryService;
 
         functionCommandMap.put(START, handleStartMessage);
+        functionCommandMap.put(HELP, handleHelpMessage);
         functionCommandMap.put(ADD_NEW_INFO, handleButtonAddNewInfo);
         functionCommandMap.put(INFO_LIST, handleButtonInfoList);
         functionCommandMap.put(CATEGORY_LIST, handleButtonCategoryList);
@@ -103,6 +105,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
         functionCallbackDataMap.put(DELETE_MESSAGE_YES_CALLBACK, handleMessageDeleteYes);
         functionCallbackDataMap.put(DELETE_MESSAGE_NO_CALLBACK, handleMessageDeleteNo);
         functionCallbackDataMap.put(VIEW_PROFILE_LANGUAGE_CALLBACK, handleMessageChangeLanguage);
+        functionCallbackDataMap.put(HOT_IT_WORKS_CALLBACK, howItWorksCallback);
         functionCallbackDataMap.put(PROFILE_MAIN_MENU_CALLBACK, handleProfileMainMenuBack);
         functionCallbackDataMap.put(CHANGE_PROFILE_LANGUAGE_CALLBACK, handleChangeLanguage);
         functionCallbackDataMap.put(CONTACT_INFO_CALLBACK, handleContactInfo);
@@ -164,9 +167,11 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                                     : functionCommandMap.get(extractSubstringForButton(inputUserData.getMessageText())))
                                     .ifPresentOrElse(function -> function.apply(inputUserData),
                                             () -> Optional.ofNullable(functionUserStateMap.get(inputUserData.getState()))
-                                                    .ifPresent(function -> function.apply(inputUserData))),
+                                                    .ifPresentOrElse(function -> function.apply(inputUserData),
+                                                            () -> manageInvalidInputMessage(inputUserData))),
                             () -> Optional.ofNullable(functionUserStateMap.get(inputUserData.getState()))
-                                    .ifPresent(function -> function.apply(inputUserData)));
+                                    .ifPresentOrElse(function -> function.apply(inputUserData),
+                                            () -> manageInvalidInputMessage(inputUserData)));
         } else if (update.hasCallbackQuery()) {
             var inputMessage = (Message) update.getCallbackQuery().getMessage();
             var msgType = manageMsgType(inputMessage);
@@ -225,6 +230,35 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
         }
     }
 
+    private void manageInvalidInputMessage(InputUserData inputUserData) {
+        String key = inputUserData.getUser().getId().toString().concat(inputUserData.getChatId().toString());
+        deleteMessage(inputUserData.getChatId(), inputUserData.getMessageId());
+
+        COUNT_MAP.compute(key, (k, count) -> {
+            if (count == null) {
+                return new AtomicInteger(1);
+            } else {
+                if (count.get() >= TRY_COUNT) {
+                    clearMessages(inputUserData, MESSAGES_INVALID_INPUT);
+                    var message = sendMessage(
+                            inputUserData.getChatId(),
+                            inputUserData.getMessageSourceService()
+                                    .getMessage("messages.input.invalid-text-input", inputUserData.getLanguageCode()));
+
+                    chatMessageStateService.addMessage(
+                            inputUserData.getUser().getId(),
+                            inputUserData.getChatId(),
+                            UserState.MESSAGES_INVALID_INPUT,
+                            List.of(message.getMessageId()));
+                    return null;
+                } else {
+                    count.incrementAndGet();
+                    return count;
+                }
+            }
+        });
+    }
+
     private MessageType manageMsgType(Message message) {
         if (message.hasText()) {
             return MessageType.SMPL;
@@ -255,11 +289,16 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
     private final Function<InputUserData, Boolean> handleStartMessage =
             userData -> {
-
                 sendMessage(
                         userData.getChatId(),
                         String.format(userData.getMessageSourceService().getMessage(
                                 "messages.greeting.start",
+                                userData.getLanguageCode()), userData.getUser().getFirstName())
+                );
+                sendMessage(
+                        userData.getChatId(),
+                        String.format(userData.getMessageSourceService().getMessage(
+                                "messages.greeting.help",
                                 userData.getLanguageCode()), userData.getUser().getFirstName()),
                         userData.getKeyboardFactoryService().getMainMenuKeyboard(userData.getLanguageCode()));
 
@@ -267,27 +306,70 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 return Boolean.TRUE;
             };
 
+    private final Function<InputUserData, Boolean> handleHelpMessage =
+            userData -> {
+                clearMessages(userData, UserState.HELP);
+
+                var message = sendMessage(
+                        userData.getChatId(),
+                        String.format(userData.getMessageSourceService().getMessage(
+                                "messages.help.info",
+                                userData.getLanguageCode()), userData.getUser().getFirstName()),
+                        userData.getKeyboardFactoryService().getMainMenuKeyboard(userData.getLanguageCode()));
+
+
+                userData
+                        .getChatMessageStateService()
+                        .addMessage(
+                                userData.getUser().getId(),
+                                userData.getChatId(),
+                                UserState.HELP,
+                                List.of(message.getMessageId()));
+
+                return Boolean.TRUE;
+            };
+
 
     private final Function<InputUserData, Boolean> handleProfileMainMenu =
             userData -> {
+                clearMessages(userData, List.of(PROFILE));
                 deleteMessage(userData.getChatId(), userData.getMessageId());
 
-                sendMessage(
+                var messageAndCategoryCount = userData.getMessageService().getMessageAndCategoryCount(userData.getUser().getId());
+
+                Message message = sendMessage(
                         userData.getChatId(),
                         String.format(userData.getMessageSourceService().getMessage(
-                                "messages.profile",
-                                userData.getLanguageCode()), userData.getUser().getFirstName()),
+                                        "messages.profile",
+                                        userData.getLanguageCode()),
+                                userData.getUser().getFirstName(),
+                                messageAndCategoryCount.getMessageCount(),
+                                messageAndCategoryCount.getCategoryCount()),
                         userData.getKeyboardFactoryService().getProfileKeyboard(userData.getLanguageCode()));
+
+                userData
+                        .getChatMessageStateService()
+                        .addMessage(
+                                userData.getUser().getId(),
+                                userData.getChatId(),
+                                PROFILE,
+                                List.of(message.getMessageId()));
+
                 return Boolean.TRUE;
             };
 
     private final Function<InputUserData, Boolean> handleProfileMainMenuBack =
             userData -> {
+                var messageAndCategoryCount = userData.getMessageService().getMessageAndCategoryCount(userData.getUser().getId());
+
                 sendEditMessage(
                         userData.getChatId(),
                         String.format(userData.getMessageSourceService().getMessage(
-                                "messages.profile",
-                                userData.getLanguageCode()), userData.getUser().getFirstName()),
+                                        "messages.profile",
+                                        userData.getLanguageCode()),
+                                userData.getUser().getFirstName(),
+                                messageAndCategoryCount.getMessageCount(),
+                                messageAndCategoryCount.getCategoryCount()),
                         userData.getKeyboardFactoryService().getProfileKeyboard(userData.getLanguageCode()),
                         null,
                         userData.getMessageId());
@@ -369,17 +451,13 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
     private List<MessageEntity> manageMessageEntitiesShortMessage(
             Collection<EMessageEntity> messageEntities, String messageString, Integer maxLength, String suffix) {
-
-
         var entities = new ArrayList<>(getMessageEntities(messageEntities, maxLength));
-
         entities.add(
                 MessageEntity.builder()
                         .type(BOLD_STYLE)
                         .offset(messageString.lastIndexOf(suffix))
                         .length(suffix.length())
                         .build());
-
         return entities;
     }
 
@@ -420,10 +498,12 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
     private final Function<InputUserData, Boolean> handleButtonAddNewInfo =
             userData -> {
-                cleanMessagesInStatus(userData, List.of(WAIT_EDIT_TEXT_CONCRETE));
+                clearMessages(userData, List.of(WAIT_TEXT, WAIT_EDIT_TEXT_CONCRETE));
                 deleteMessage(userData.getChatId(), userData.getMessageId());
 
-                var message = sendMessage(userData.getChatId(), userData.getMessageSourceService().getMessage("messages.input.waiting-data", userData.getLanguageCode()));
+                var message = sendMessage(userData.getChatId(), userData.getMessageSourceService().getMessage(
+                        "messages.input.waiting-data",
+                        userData.getLanguageCode()));
                 userData
                         .getChatMessageStateService()
                         .addMessage(
@@ -592,7 +672,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                     sendMessage(userData.getChatId(),
                             userData
                                     .getMessageSourceService()
-                                    .getMessage("messages.collection.empty", userData.getLanguageCode()));
+                                    .getMessage("messages.collection.category.empty", userData.getLanguageCode()));
 
                     return Boolean.FALSE;
                 }
@@ -967,7 +1047,9 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
                 userData
                         .getMessageService()
-                        .deleteMessage(Long.valueOf(userData.getCallBackData().get(MESSAGE_ID)));
+                        .deleteMessage(
+                                Long.valueOf(userData.getCallBackData().get(MESSAGE_ID)),
+                                userData.getChatId());
                 return Boolean.TRUE;
             };
 
@@ -1015,6 +1097,19 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                                 user.getLanguageCode()),
                                 AVAILABLE_LANGUAGES_MAP.get(user.getLanguageCode()).emoji()),
                         userData.getKeyboardFactoryService().getAvailableLanguage(user.getLanguageCode()),
+                        null,
+                        userData.getMessageId()
+                );
+                return Boolean.TRUE;
+            };
+
+    private final Function<InputUserData, Boolean> howItWorksCallback =
+            userData -> {
+                sendEditMessage(userData.getChatId(),
+                        String.format(userData.getMessageSourceService().getMessage(
+                                "messages.help.info",
+                                userData.getLanguageCode()), userData.getUser().getFirstName()),
+                        userData.getKeyboardFactoryService().getSingleBackKeyboard(userData.getLanguageCode()),
                         null,
                         userData.getMessageId()
                 );
@@ -1121,6 +1216,14 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
     private void deleteMessage(long chatId, int messageId) {
         try {
             telegramClient.execute(DeleteMessage.builder().chatId(chatId).messageId(messageId).build());
+        } catch (TelegramApiException e) {
+            log.error("Error: ", e);
+        }
+    }
+
+    private void deleteMessages(long chatId, Collection<Integer> messageIds) {
+        try {
+            telegramClient.execute(DeleteMessages.builder().chatId(chatId).messageIds(messageIds).build());
         } catch (TelegramApiException e) {
             log.error("Error: ", e);
         }
@@ -1233,15 +1336,6 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 getCategories(userData, userData.isForwardedMessage()));
     }
 
-    private void cleanMessagesInStatus(InputUserData userData, List<UserState> awaitingCustomNames) {
-        awaitingCustomNames.forEach(
-                awaitingCustomName ->
-                        userData
-                                .getChatMessageStateService()
-                                .clearStateMessages(
-                                        userData.getUser().getId(), userData.getChatId(), awaitingCustomName));
-    }
-
     private void clearMessages(InputUserData userData, UserState awaitingCustomName) {
         userData
                 .getChatMessageStateService()
@@ -1254,10 +1348,14 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
     private void clearMessages(InputUserData userData, List<UserState> statuses) {
         statuses.forEach(s -> {
-            userData
+            var messages = userData
                     .getChatMessageStateService()
-                    .getMessages(userData.getUser().getId(), userData.getChatId(), s)
-                    .forEach(msgId -> deleteMessage(userData.getChatId(), msgId));
+                    .getMessages(userData.getUser().getId(), userData.getChatId(), s);
+            if (!messages.isEmpty()) {
+                deleteMessages(
+                        userData.getChatId(),
+                        messages);
+            }
             userData
                     .getChatMessageStateService()
                     .clearStateMessages(userData.getUser().getId(), userData.getChatId(), s);

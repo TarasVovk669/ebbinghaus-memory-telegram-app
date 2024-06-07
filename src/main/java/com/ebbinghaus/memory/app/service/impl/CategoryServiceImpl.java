@@ -8,6 +8,8 @@ import com.ebbinghaus.memory.app.service.CategoryService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -56,6 +58,8 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "get_user_profile_stat", key = "#category.ownerId")})
     public Category save(Category category) {
         log.info("Save category: {}", category);
 
@@ -69,8 +73,10 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public void deleteById(Collection<Long> ids) {
-        log.info("Delete categories by ids: {}", ids);
+    @Caching(evict = {
+            @CacheEvict(value = "get_user_profile_stat", key = "#ownerId")})
+    public void deleteById(Collection<Long> ids, Long ownerId) {
+        log.info("Delete categories by ids: {} and ownerId: {}", ids, ownerId);
         categoryRepository.deleteAllById(ids);
     }
 }

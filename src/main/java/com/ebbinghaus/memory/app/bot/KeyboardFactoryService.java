@@ -162,7 +162,19 @@ public class KeyboardFactoryService {
                                         Map.entry(OPERATION, CONTACT_INFO_CALLBACK)))))
                 .build();
 
-        return new InlineKeyboardMarkup(List.of(new InlineKeyboardRow(changeLanguage), new InlineKeyboardRow(contactInfo)));
+        var howItWorks = InlineKeyboardButton.builder()
+                .text(messageSourceService.getMessage("messages.profile.how-to-use", languageCode))
+                .callbackData(doTry(() ->
+                        objectMapper.writeValueAsString(
+                                Map.ofEntries(
+                                        Map.entry(OPERATION, HOT_IT_WORKS_CALLBACK)))))
+                .build();
+
+        return new InlineKeyboardMarkup(List.of(
+                new InlineKeyboardRow(changeLanguage),
+                new InlineKeyboardRow(contactInfo),
+                new InlineKeyboardRow(howItWorks)
+        ));
     }
 
     public InlineKeyboardMarkup getAvailableLanguage(String languageCode) {

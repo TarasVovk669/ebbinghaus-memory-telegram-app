@@ -5,17 +5,24 @@ import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.domain.EMessageCategory;
 import com.ebbinghaus.memory.app.domain.EMessageEntity;
 import com.ebbinghaus.memory.app.model.CategoryMessageCountProj;
+import com.ebbinghaus.memory.app.model.DataMessageCategoryProj;
 import com.ebbinghaus.memory.app.model.MessageTuple;
 import com.ebbinghaus.memory.app.repository.MessageCategoryRepository;
 import com.ebbinghaus.memory.app.repository.MessageEntityRepository;
 import com.ebbinghaus.memory.app.repository.MessageRepository;
 import com.ebbinghaus.memory.app.service.CategoryService;
 import com.ebbinghaus.memory.app.service.MessageService;
+import com.ebbinghaus.memory.app.service.SchedulerService;
+import com.ebbinghaus.memory.app.service.UtilityService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -34,12 +41,15 @@ public class MessageServiceImpl implements MessageService {
     private static final Logger log = LoggerFactory.getLogger(MessageServiceImpl.class);
 
     private final CategoryService categoryService;
+    private final UtilityService utilityService;
     private final MessageRepository messageRepository;
     private final MessageEntityRepository messageEntityRepository;
     private final MessageCategoryRepository messageCategoryRepository;
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "get_user_profile_stat", key = "#messageTuple.message.ownerId")})
     public EMessage addMessage(MessageTuple messageTuple) {
         log.info("Add message: {}", messageTuple);
         var message = messageTuple.message();
@@ -140,14 +150,22 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     @Transactional
-    public void deleteMessage(Long id) {
+    public void deleteMessage(Long id, Long chatId) {
         log.info("Delete messages with id: {}", id);
 
         messageRepository.getEMessageById(id)
                 .ifPresent(message -> {
                     manageMessageCategoryWithCategory(message, message.getMessageCategories());
                     messageRepository.deleteById(id);
+                    utilityService.removeSchedulerTrigger(id, chatId);
                 });
+    }
+
+    @Override
+    @Cacheable(value = "get_user_profile_stat", key = "#ownerId")
+    public DataMessageCategoryProj getMessageAndCategoryCount(Long ownerId) {
+        log.info("Get message and category count for user_id: {}", ownerId);
+        return messageRepository.getMessageAndCategoryCount(ownerId);
     }
 
     @NotNull
@@ -188,14 +206,17 @@ public class MessageServiceImpl implements MessageService {
 
     private void manageMessageCategoryWithCategory(EMessage message, Collection<EMessageCategory> difference) {
         messageCategoryRepository.deleteAll(difference);
-        categoryService.deleteById(
-                categoryService.findCategoryMessageCounts(
-                                message.getOwnerId(),
-                                difference.stream()
-                                        .map(mc -> mc.getId().getCategoryId())
-                                        .collect(Collectors.toList()))
-                        .stream()
-                        .filter(c -> c.getMsgQuantity().equals(0L))
-                        .map(CategoryMessageCountProj::getId).toList());
+        List<Long> result = categoryService.findCategoryMessageCounts(
+                        message.getOwnerId(),
+                        difference.stream()
+                                .map(mc -> mc.getId().getCategoryId())
+                                .collect(Collectors.toList()))
+                .stream()
+                .filter(c -> c.getMsgQuantity().equals(0L))
+                .map(CategoryMessageCountProj::getId).toList();
+
+        if (!result.isEmpty()) {
+            categoryService.deleteById(result, message.getOwnerId());
+        }
     }
 }

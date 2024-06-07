@@ -24,6 +24,7 @@ import java.util.Date;
 import static com.ebbinghaus.memory.app.bot.MemoryBot.manageMsgType;
 import static com.ebbinghaus.memory.app.bot.MemoryBot.parseMessage;
 import static com.ebbinghaus.memory.app.utils.MessageUtil.manageMessageEntitiesLongMessage;
+import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
 import static java.time.ZoneOffset.UTC;
 
 @Component
@@ -120,6 +121,5 @@ public class SchedulerServiceImpl extends QuartzJobBean implements SchedulerServ
             throw new RuntimeException(e);
         }
     }
-
 
 }
