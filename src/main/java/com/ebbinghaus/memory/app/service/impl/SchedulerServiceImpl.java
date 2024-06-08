@@ -6,6 +6,7 @@ import com.ebbinghaus.memory.app.domain.EMessageEntity;
 import com.ebbinghaus.memory.app.domain.EMessageType;
 import com.ebbinghaus.memory.app.model.InputUserData;
 import com.ebbinghaus.memory.app.model.MessageDataRequest;
+import com.ebbinghaus.memory.app.model.ScheduleResultTuple;
 import com.ebbinghaus.memory.app.service.MessageService;
 import com.ebbinghaus.memory.app.service.MessageSourceService;
 import com.ebbinghaus.memory.app.service.SchedulerService;
@@ -142,9 +143,6 @@ public class SchedulerServiceImpl extends QuartzJobBean implements SchedulerServ
                 .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionFireNow())
                 .build();
         return new ScheduleResultTuple(jobDetail, trigger);
-    }
-
-    private record ScheduleResultTuple(JobDetail jobDetail, Trigger trigger) {
     }
 
 }
