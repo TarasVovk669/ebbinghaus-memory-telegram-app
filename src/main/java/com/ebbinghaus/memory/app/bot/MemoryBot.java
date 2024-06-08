@@ -36,8 +36,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.ebbinghaus.memory.app.model.UserState.*;
-import static com.ebbinghaus.memory.app.utils.Constants.*;
 import static com.ebbinghaus.memory.app.utils.Constants.HELP;
+import static com.ebbinghaus.memory.app.utils.Constants.*;
 import static com.ebbinghaus.memory.app.utils.DateUtils.calculateNextExecutionTime;
 import static com.ebbinghaus.memory.app.utils.DateUtils.formatDuration;
 import static com.ebbinghaus.memory.app.utils.ObjectUtils.*;

@@ -5,7 +5,6 @@ import com.ebbinghaus.memory.app.model.DataMessageCategoryProj;
 import com.ebbinghaus.memory.app.model.MessageTuple;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
-import org.springframework.transaction.annotation.Transactional;
 
 public interface MessageService {
 
