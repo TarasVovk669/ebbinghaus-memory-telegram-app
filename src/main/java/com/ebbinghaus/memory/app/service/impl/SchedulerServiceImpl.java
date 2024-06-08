@@ -12,6 +12,7 @@ import com.ebbinghaus.memory.app.service.SchedulerService;
 import com.ebbinghaus.memory.app.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +55,7 @@ public class SchedulerServiceImpl extends QuartzJobBean implements SchedulerServ
         var jobDataMap = context.getMergedJobDataMap();
 
         var message = messageService.getUpdatedMessage(Long.valueOf(jobDataMap.getString("message_id")), true);
+        var chatId = Long.valueOf(jobDataMap.getString("chat_id"));
         var languageCode = userService.getUser(message.getOwnerId()).getLanguageCode();
         var suffix = messageSourceService.getMessage("messages.suffix.execution-time",
                 languageCode);
@@ -66,7 +68,7 @@ public class SchedulerServiceImpl extends QuartzJobBean implements SchedulerServ
 
         manageMsgType(message)
                 .sendMessage(MessageDataRequest.builder()
-                                .chatId(Long.valueOf(jobDataMap.getString("chat_id")))
+                                .chatId(chatId)
                                 .messageText(messageString)
                                 .messageId(message.getId().intValue())
                                 .entities(
@@ -85,7 +87,22 @@ public class SchedulerServiceImpl extends QuartzJobBean implements SchedulerServ
                         telegramClient);
 
         try {
-            scheduler.deleteJob(context.getJobDetail().getKey());
+            ScheduleResultTuple result = getScheduleResultTuple(message, chatId, jobDataMap);
+
+            if (scheduler.checkExists(context.getJobDetail().getKey())) {
+                JobDetail existingJobDetail = scheduler.getJobDetail(context.getJobDetail().getKey());
+                Trigger newTrigger = TriggerBuilder.newTrigger()
+                        .forJob(existingJobDetail)
+                        .withIdentity(existingJobDetail.getKey().getName(), "message-triggers")
+                        .withDescription(String.format("Send Message Trigger: %s", existingJobDetail.getKey().getName()))
+                        .startAt(Date.from(message.getNextExecutionDateTime().atZone(UTC).toInstant()))
+                        .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionFireNow())
+                        .build();
+
+                scheduler.rescheduleJob(newTrigger.getKey(), newTrigger);
+            } else {
+                scheduler.scheduleJob(result.jobDetail(), result.trigger());
+            }
         } catch (SchedulerException e) {
             throw new RuntimeException(e);
         }
@@ -93,33 +110,42 @@ public class SchedulerServiceImpl extends QuartzJobBean implements SchedulerServ
 
     @Override
     public void scheduleMessage(EMessage message, InputUserData userData) {
+        log.info("Schedule message with id: {} and chat_id:{}", message.getId(), userData.getChatId());
+
         var jobDataMap = new JobDataMap();
         jobDataMap.putAsString("message_id", message.getId());
         jobDataMap.putAsString("chat_id", userData.getChatId());
 
         try {
-            JobDetail jobDetail = JobBuilder.newJob(this.getClass())
-                    .withIdentity(message.getId().toString().concat(userData.getChatId().toString()), "message-jobs")
-                    .withDescription(String.format("Send scheduled message: %d", message.getId()))
-                    .usingJobData(jobDataMap)
-                    .storeDurably()
-                    .build();
-            Trigger trigger = TriggerBuilder.newTrigger()
-                    .forJob(jobDetail)
-                    .withIdentity(jobDetail.getKey().getName(), "message-triggers")
-                    .withDescription(String.format("Send Message Trigger: %s", jobDetail.getKey().getName()))
-                    .startAt(Date.from(message.getNextExecutionDateTime().atZone(UTC).toInstant()))
-                    .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionFireNow())
-                    .build();
-
-
-            scheduler.scheduleJob(jobDetail, trigger);
+            ScheduleResultTuple result = getScheduleResultTuple(message, userData.getChatId(), jobDataMap);
+            scheduler.scheduleJob(result.jobDetail(), result.trigger());
 
             log.info("Create trigger for message with id: {} and for chat_id: {}", message.getId(), userData.getChatId());
         } catch (SchedulerException e) {
             log.error("Error scheduling message", e);
             throw new RuntimeException(e);
         }
+    }
+
+    @NotNull
+    private ScheduleResultTuple getScheduleResultTuple(EMessage message, Long chatId, JobDataMap jobDataMap) {
+        JobDetail jobDetail = JobBuilder.newJob(this.getClass())
+                .withIdentity(message.getId().toString().concat(chatId.toString()), "message-jobs")
+                .withDescription(String.format("Send scheduled message: %d", message.getId()))
+                .usingJobData(jobDataMap)
+                .storeDurably()
+                .build();
+        Trigger trigger = TriggerBuilder.newTrigger()
+                .forJob(jobDetail)
+                .withIdentity(jobDetail.getKey().getName(), "message-triggers")
+                .withDescription(String.format("Send Message Trigger: %s", jobDetail.getKey().getName()))
+                .startAt(Date.from(message.getNextExecutionDateTime().atZone(UTC).toInstant()))
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionFireNow())
+                .build();
+        return new ScheduleResultTuple(jobDetail, trigger);
+    }
+
+    private record ScheduleResultTuple(JobDetail jobDetail, Trigger trigger) {
     }
 
 }

@@ -136,7 +136,7 @@ public class MessageServiceImpl implements MessageService {
         message.setExecutionStep(message.getExecutionStep() + 1);
         message.setNextExecutionDateTime(calculateNextExecutionTime(message));
 
-        return message;
+        return messageRepository.save(message);
     }
 
     @Override
