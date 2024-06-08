@@ -535,10 +535,21 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                         Sort.by(Sort.Order.desc("id")));
 
                 if (messages.getTotalElements() == ZERO_COUNT) {
-                    sendMessage(userData.getChatId(),
+                    deleteMessage(userData.getChatId(), userData.getMessageId());
+                    clearMessages(userData, DATA_LIST);
+
+                    var dataInfoEmptyMessage = sendMessage(userData.getChatId(),
                             userData
                                     .getMessageSourceService()
                                     .getMessage("messages.collection.empty", userData.getLanguageCode()));
+
+                    userData
+                            .getChatMessageStateService()
+                            .addMessage(
+                                    userData.getUser().getId(),
+                                    userData.getChatId(),
+                                    DATA_LIST,
+                                    List.of(dataInfoEmptyMessage.getMessageId()));
 
                     return Boolean.FALSE;
                 }
@@ -669,11 +680,21 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                         userData.getUser().getId(), page, size, Sort.by(Sort.Order.desc("id")));
 
                 if (categories.getTotalElements() == ZERO_COUNT) {
-                    sendMessage(userData.getChatId(),
+                    deleteMessage(userData.getChatId(), userData.getMessageId());
+                    clearMessages(userData, CATEGORY_DATA_LIST);
+
+                    var emptyInfoMessage = sendMessage(userData.getChatId(),
                             userData
                                     .getMessageSourceService()
                                     .getMessage("messages.collection.category.empty", userData.getLanguageCode()));
 
+                    userData
+                            .getChatMessageStateService()
+                            .addMessage(
+                                    userData.getUser().getId(),
+                                    userData.getChatId(),
+                                    CATEGORY_DATA_LIST,
+                                    List.of(emptyInfoMessage.getMessageId()));
                     return Boolean.FALSE;
                 }
 

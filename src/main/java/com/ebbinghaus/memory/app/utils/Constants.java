@@ -14,7 +14,7 @@ public class Constants {
     public static final int DEFAULT_DATA_PAGE_SIZE = 5;
     public static final int DEFAULT_CATEGORY_PAGE_SIZE = 5;
     public static final long ZERO_COUNT = 0L;
-    public static final int TRY_COUNT = 2;
+    public static final int TRY_COUNT = 1;
     public static final Long DEFAULT_TIME_EXECUTION = 8L;
 
     public static final String EDIT_CONCRETE_MESSAGE_CALLBACK = "ccm";
