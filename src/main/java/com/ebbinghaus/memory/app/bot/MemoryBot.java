@@ -386,12 +386,20 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 var newLanguageCode = userData.getCallBackData().get(LANGUAGE_CODE);
                 userData.getUserService().updateLanguageCode(userData.getUser().getId(), newLanguageCode);
 
-                sendMessage(
+                var message = sendMessage(
                         userData.getChatId(),
                         String.format(userData.getMessageSourceService().getMessage(
                                 "messages.profile.success-change",
                                 newLanguageCode), userData.getUser().getFirstName()),
                         userData.getKeyboardFactoryService().getMainMenuKeyboard(newLanguageCode));
+
+                userData
+                        .getChatMessageStateService()
+                        .addMessage(
+                                userData.getUser().getId(),
+                                userData.getChatId(),
+                                PROFILE,
+                                List.of(message.getMessageId()));
                 return Boolean.TRUE;
             };
 
