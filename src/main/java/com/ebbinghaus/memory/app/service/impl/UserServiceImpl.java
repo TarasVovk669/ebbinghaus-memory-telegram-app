@@ -51,7 +51,14 @@ public class UserServiceImpl implements UserService {
     @Cacheable(value = "get_user", key = "#userId")
     public EUser getUser(Long userId) {
         log.info("Get user with id: {} ", userId);
-        return userRepository.findById(userId).orElseThrow();
+        return userRepository.findById(userId)
+                .orElseGet(() -> userRepository.save(EUser
+                        .builder()
+                        .id(userId)
+                        .languageCode(DEFAULT_LANGUAGE_CODE)
+                        .createdDateTime(LocalDateTime.now(UTC))
+                        .build()));
+
     }
 
     @Override

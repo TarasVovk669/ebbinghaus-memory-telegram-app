@@ -2,9 +2,7 @@ package com.ebbinghaus.memory.app.utils;
 
 import com.ebbinghaus.memory.app.exception.TelegramCallException;
 import com.ebbinghaus.memory.app.utils.function.ThrowingRunnable;
-import org.springframework.util.function.ThrowingConsumer;
 import org.springframework.util.function.ThrowingSupplier;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Optional;
 

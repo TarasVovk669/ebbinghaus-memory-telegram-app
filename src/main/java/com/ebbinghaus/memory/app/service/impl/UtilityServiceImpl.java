@@ -4,13 +4,11 @@ import com.ebbinghaus.memory.app.service.UtilityService;
 import lombok.RequiredArgsConstructor;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
-import org.quartz.TriggerKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import static com.ebbinghaus.memory.app.service.impl.SchedulerServiceImpl.JOBS_GROUP;
-import static com.ebbinghaus.memory.app.service.impl.SchedulerServiceImpl.TRIGGERS_GROUP;
 import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
 
 

@@ -1,7 +1,6 @@
 package com.ebbinghaus.memory.app.service.impl;
 
 import com.ebbinghaus.memory.app.domain.ScheduleMessageErrorQueue;
-import com.ebbinghaus.memory.app.repository.CategoryRepository;
 import com.ebbinghaus.memory.app.repository.ScheduleMessageErrorQueueRepository;
 import com.ebbinghaus.memory.app.service.ScheduleMessageErrorQueueService;
 import lombok.RequiredArgsConstructor;

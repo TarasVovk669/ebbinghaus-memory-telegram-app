@@ -2,7 +2,6 @@ package com.ebbinghaus.memory.app.model;
 
 import com.ebbinghaus.memory.app.domain.File;
 import com.ebbinghaus.memory.app.domain.FileType;
-import com.ebbinghaus.memory.app.exception.TelegramCallException;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
