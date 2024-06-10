@@ -242,7 +242,8 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                     var message = sendMessage(
                             inputUserData.getChatId(),
                             inputUserData.getMessageSourceService()
-                                    .getMessage("messages.input.invalid-text-input", inputUserData.getLanguageCode()));
+                                    .getMessage("messages.input.invalid-text-input", inputUserData.getLanguageCode()),
+                            keyboardFactoryService.getMainMenuKeyboard(inputUserData.getLanguageCode()));
 
                     chatMessageStateService.addMessage(
                             inputUserData.getUser().getId(),
