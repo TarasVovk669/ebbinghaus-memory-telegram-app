@@ -1,10 +1,12 @@
 package com.ebbinghaus.memory.app.service;
 
 import com.ebbinghaus.memory.app.domain.EMessage;
-import com.ebbinghaus.memory.app.model.DataMessageCategoryProj;
+import com.ebbinghaus.memory.app.model.proj.DataMessageCategoryProj;
 import com.ebbinghaus.memory.app.model.MessageTuple;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
+
+import java.time.LocalDateTime;
 
 public interface MessageService {
 
@@ -17,6 +19,8 @@ public interface MessageService {
     EMessage getMessage(Long id, boolean fetch);
 
     EMessage getUpdatedMessage(Long id, boolean fetch);
+
+    EMessage getUpdatedMessage(Long id, Integer step, LocalDateTime executionTime);
 
     EMessage getMessageByTgExternalId(Long externalId, Long userId);
 

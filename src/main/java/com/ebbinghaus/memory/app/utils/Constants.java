@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.util.ConcurrentReferenceHashMap;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -15,7 +16,7 @@ public class Constants {
     public static final int DEFAULT_CATEGORY_PAGE_SIZE = 5;
     public static final long ZERO_COUNT = 0L;
     public static final int TRY_COUNT = 1;
-    public static final Long DEFAULT_TIME_EXECUTION = 8L;
+    public static final Long DEFAULT_TIME_EXECUTION = 30L;
 
     public static final String EDIT_CONCRETE_MESSAGE_CALLBACK = "ccm";
     public static final String VIEW_MESSAGE_CALLBACK = "vm";
@@ -59,24 +60,22 @@ public class Constants {
     public static final String PAGE = "P";
     public static final String SIZE = "S";
 
-    public final static Map<String, AtomicInteger> COUNT_MAP = new ConcurrentReferenceHashMap<>(
-            100,
-            ConcurrentReferenceHashMap.ReferenceType.WEAK);
-
-    public static final TypeReference<HashMap<String, String>> MAP_TYPE_REF =
-            new TypeReference<>() {
-            };
+    public final static List<String> SERVER_MOST_POPULAR_ERRORS = List.of("500", "501", "502", "503", "504");
+    public final static Map<String, AtomicInteger> COUNT_MAP = new ConcurrentReferenceHashMap<>(100, ConcurrentReferenceHashMap.ReferenceType.WEAK);
+    public static final TypeReference<HashMap<String, String>> MAP_TYPE_REF = new TypeReference<>() {
+    };
     public static final Map<Integer, Long> INTERVAL_MAP =
             Map.ofEntries(
-                    Map.entry(1, 8L),
-                    Map.entry(2, 24L),
-                    Map.entry(3, 7 * 24L),
-                    Map.entry(4, 30 * 24L),
-                    Map.entry(5, 3 * 30 * 24L),
-                    Map.entry(6, 6 * 30 * 24L),
-                    Map.entry(7, 12 * 30 * 24L),
-                    Map.entry(8, 24 * 30 * 24L),
-                    Map.entry(9, 60 * 30 * 24L)
+                    Map.entry(1, 30L),
+                    Map.entry(2, 60 * 8L),
+                    Map.entry(3, 60 * 24L),
+                    Map.entry(4, 7 * 60 * 24L),
+                    Map.entry(5, 30 * 60 * 24L),
+                    Map.entry(6, 3 * 30 * 60 * 24L),
+                    Map.entry(7, 6 * 30 * 60 * 24L),
+                    Map.entry(8, 12 * 30 * 60 * 24L),
+                    Map.entry(9, 24 * 30 * 60 * 24L),
+                    Map.entry(10, 60 * 30 * 60 * 24L)
             );
 
     public static final Map<String, LanguageData> AVAILABLE_LANGUAGES_MAP =

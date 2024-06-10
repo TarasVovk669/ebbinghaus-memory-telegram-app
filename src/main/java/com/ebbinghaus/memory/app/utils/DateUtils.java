@@ -14,18 +14,17 @@ public class DateUtils {
 
     //for new messages
     public static LocalDateTime calculateNextExecutionTime(LocalDateTime dateTime) {
-        return dateTime.plusHours(DEFAULT_TIME_EXECUTION);
+        return dateTime.plusMinutes(DEFAULT_TIME_EXECUTION);
     }
 
     public static LocalDateTime calculateNextExecutionTime(EMessage eMessage) {
         return eMessage.getNextExecutionDateTime()
-                .plusHours(
+                .plusMinutes(
                         INTERVAL_MAP.getOrDefault(
                                 eMessage.getExecutionStep(),
                                 DEFAULT_TIME_EXECUTION));
     }
 
-    //todo: format this for future with correct endings
     public static String formatDuration(LocalDateTime start,
                                         LocalDateTime end,
                                         String languageCode,

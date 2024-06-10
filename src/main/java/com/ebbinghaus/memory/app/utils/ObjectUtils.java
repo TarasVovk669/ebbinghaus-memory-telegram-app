@@ -1,6 +1,10 @@
 package com.ebbinghaus.memory.app.utils;
 
+import com.ebbinghaus.memory.app.exception.TelegramCallException;
+import com.ebbinghaus.memory.app.utils.function.ThrowingRunnable;
+import org.springframework.util.function.ThrowingConsumer;
 import org.springframework.util.function.ThrowingSupplier;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Optional;
 
@@ -29,8 +33,23 @@ public class ObjectUtils {
         try {
             return func.get();
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException();
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    public static void doTry(ThrowingRunnable runnable) {
+        try {
+            runnable.run();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public static <T> T doTryTgCall(ThrowingSupplier<T> func) {
+        try {
+            return func.get();
+        } catch (Exception e) {
+            throw new TelegramCallException(e.getMessage());
         }
     }
 }

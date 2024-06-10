@@ -2,7 +2,7 @@ package com.ebbinghaus.memory.app.service.impl;
 
 import com.ebbinghaus.memory.app.domain.Category;
 import com.ebbinghaus.memory.app.model.CategoryMessageCount;
-import com.ebbinghaus.memory.app.model.CategoryMessageCountProj;
+import com.ebbinghaus.memory.app.model.proj.CategoryMessageCountProj;
 import com.ebbinghaus.memory.app.repository.CategoryRepository;
 import com.ebbinghaus.memory.app.service.CategoryService;
 import lombok.AllArgsConstructor;

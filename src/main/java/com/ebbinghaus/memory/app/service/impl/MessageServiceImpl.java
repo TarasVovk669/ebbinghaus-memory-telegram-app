@@ -4,8 +4,8 @@ import com.ebbinghaus.memory.app.domain.Category;
 import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.domain.EMessageCategory;
 import com.ebbinghaus.memory.app.domain.EMessageEntity;
-import com.ebbinghaus.memory.app.model.CategoryMessageCountProj;
-import com.ebbinghaus.memory.app.model.DataMessageCategoryProj;
+import com.ebbinghaus.memory.app.model.proj.CategoryMessageCountProj;
+import com.ebbinghaus.memory.app.model.proj.DataMessageCategoryProj;
 import com.ebbinghaus.memory.app.model.MessageTuple;
 import com.ebbinghaus.memory.app.repository.MessageCategoryRepository;
 import com.ebbinghaus.memory.app.repository.MessageEntityRepository;
@@ -27,6 +27,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -98,7 +99,7 @@ public class MessageServiceImpl implements MessageService {
 
         Map<Long, List<EMessageEntity>> messageEntitiesMap = getMessageEntitiesMap(messages);
         messages.forEach(
-                m -> m.setMessageEntities(messageEntitiesMap.containsKey(m.getId())
+                m -> m.setMessageEntitiesDirectly(messageEntitiesMap.containsKey(m.getId())
                         ? new HashSet<>(messageEntitiesMap.get(m.getId())) : new HashSet<>())
         );
 
@@ -134,7 +135,26 @@ public class MessageServiceImpl implements MessageService {
         message.setExecutionStep(message.getExecutionStep() + 1);
         message.setNextExecutionDateTime(calculateNextExecutionTime(message));
 
-        return messageRepository.save(message);
+        return message;
+    }
+
+    @Override
+    @Transactional
+    public EMessage getUpdatedMessage(Long id, Integer step, LocalDateTime executionTime) {
+        log.info("Get updated_message with id: {}, step: {}, executionTime: {}",
+                id,
+                step,
+                executionTime);
+
+        var message =
+                messageRepository
+                        .getEMessageById(id)
+                        .orElseThrow(() -> new EntityNotFoundException("Message not found"));
+
+        message.setExecutionStep(step);
+        message.setNextExecutionDateTime(executionTime);
+
+        return message;
     }
 
     @Override

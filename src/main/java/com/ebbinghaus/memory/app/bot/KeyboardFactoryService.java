@@ -172,8 +172,8 @@ public class KeyboardFactoryService {
 
         return new InlineKeyboardMarkup(List.of(
                 new InlineKeyboardRow(changeLanguage),
-                new InlineKeyboardRow(contactInfo),
-                new InlineKeyboardRow(howItWorks)
+                new InlineKeyboardRow(howItWorks),
+                new InlineKeyboardRow(contactInfo)
         ));
     }
 

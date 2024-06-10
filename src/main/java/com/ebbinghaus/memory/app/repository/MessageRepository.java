@@ -1,7 +1,7 @@
 package com.ebbinghaus.memory.app.repository;
 
 import com.ebbinghaus.memory.app.domain.EMessage;
-import com.ebbinghaus.memory.app.model.DataMessageCategoryProj;
+import com.ebbinghaus.memory.app.model.proj.DataMessageCategoryProj;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;

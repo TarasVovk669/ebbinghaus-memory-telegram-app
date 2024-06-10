@@ -13,7 +13,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
   quartz:
     job-store-type: jdbc
     properties:
@@ -30,3 +30,6 @@ bot:
   owner: ${BOT_OWNER}
 server:
   port: ${APP_PORT:8081}
+app:
+  max:
+    try-fibonacci-time: 55

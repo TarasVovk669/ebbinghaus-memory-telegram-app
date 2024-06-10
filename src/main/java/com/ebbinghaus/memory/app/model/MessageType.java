@@ -2,6 +2,7 @@ package com.ebbinghaus.memory.app.model;
 
 import com.ebbinghaus.memory.app.domain.File;
 import com.ebbinghaus.memory.app.domain.FileType;
+import com.ebbinghaus.memory.app.exception.TelegramCallException;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -18,6 +19,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 import java.util.List;
 
 import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
+import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTryTgCall;
 
 public enum MessageType {
     SMPL {
@@ -59,7 +61,7 @@ public enum MessageType {
 
         @Override
         public void editMessage(MessageDataRequest data, TelegramClient telegramClient) {
-            doTry(
+            doTryTgCall(
                     () ->
                             telegramClient.execute(
                                     EditMessageText.builder()
@@ -101,21 +103,20 @@ public enum MessageType {
 
         @Override
         public Message sendMessage(MessageDataRequest userData, TelegramClient telegramClient) {
-            return doTry(
-                    () ->
-                            telegramClient.execute(
-                                    SendPhoto.builder()
-                                            .chatId(userData.getChatId())
-                                            .caption(userData.getMessageText())
-                                            .captionEntities(userData.getEntities())
-                                            .replyMarkup(userData.getReplyKeyboard())
-                                            .photo(new InputFile(userData.getFile().getFileId()))
-                                            .build()));
+            return doTryTgCall(() ->
+                    telegramClient.execute(
+                            SendPhoto.builder()
+                                    .chatId(userData.getChatId())
+                                    .caption(userData.getMessageText())
+                                    .captionEntities(userData.getEntities())
+                                    .replyMarkup(userData.getReplyKeyboard())
+                                    .photo(new InputFile(userData.getFile().getFileId()))
+                                    .build()));
         }
 
         @Override
         public void editMessage(MessageDataRequest data, TelegramClient telegramClient) {
-            doTry(
+            doTryTgCall(
                     () ->
                             telegramClient.execute(
                                     EditMessageMedia.builder()
@@ -157,7 +158,7 @@ public enum MessageType {
 
         @Override
         public Message sendMessage(MessageDataRequest userData, TelegramClient telegramClient) {
-            return doTry(
+            return doTryTgCall(
                     () ->
                             telegramClient.execute(
                                     SendDocument.builder()
@@ -171,7 +172,7 @@ public enum MessageType {
 
         @Override
         public void editMessage(MessageDataRequest data, TelegramClient telegramClient) {
-            doTry(
+            doTryTgCall(
                     () ->
                             telegramClient.execute(
                                     EditMessageMedia.builder()
@@ -214,7 +215,7 @@ public enum MessageType {
 
         @Override
         public Message sendMessage(MessageDataRequest userData, TelegramClient telegramClient) {
-            return doTry(
+            return doTryTgCall(
                     () ->
                             telegramClient.execute(
                                     SendVideo.builder()
@@ -228,7 +229,7 @@ public enum MessageType {
 
         @Override
         public void editMessage(MessageDataRequest data, TelegramClient telegramClient) {
-            doTry(
+            doTryTgCall(
                     () ->
                             telegramClient.execute(
                                     EditMessageMedia.builder()

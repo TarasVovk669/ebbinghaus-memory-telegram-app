@@ -48,7 +48,6 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
     private static final Logger log = LoggerFactory.getLogger(MemoryBot.class);
 
-
     private final String token;
     private final String ownerName;
     private final TelegramClient telegramClient;
@@ -289,6 +288,8 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
     private final Function<InputUserData, Boolean> handleStartMessage =
             userData -> {
+                userData.getUserService().setUserState(userData.getUser().getId(), MAIN_MENU);
+
                 sendMessage(
                         userData.getChatId(),
                         String.format(userData.getMessageSourceService().getMessage(
@@ -308,6 +309,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
     private final Function<InputUserData, Boolean> handleHelpMessage =
             userData -> {
+                userData.getUserService().setUserState(userData.getUser().getId(), UserState.HELP);
                 clearMessages(userData, UserState.HELP);
 
                 var message = sendMessage(
@@ -332,12 +334,13 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
     private final Function<InputUserData, Boolean> handleProfileMainMenu =
             userData -> {
+                userData.getUserService().setUserState(userData.getUser().getId(), PROFILE);
+
                 clearMessages(userData, List.of(PROFILE));
                 deleteMessage(userData.getChatId(), userData.getMessageId());
 
                 var messageAndCategoryCount = userData.getMessageService().getMessageAndCategoryCount(userData.getUser().getId());
-
-                Message message = sendMessage(
+                var message = sendMessage(
                         userData.getChatId(),
                         String.format(userData.getMessageSourceService().getMessage(
                                         "messages.profile",
@@ -518,6 +521,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
     private final Function<InputUserData, Boolean> handleButtonInfoList =
             userData -> {
+                userData.getUserService().setUserState(userData.getUser().getId(), UserState.DATA_LIST);
                 clearMessages(userData, WAIT_EDIT_TEXT_CONCRETE);
 
                 var page = getPage(userData);
@@ -668,6 +672,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
     private final Function<InputUserData, Boolean> handleButtonCategoryList =
             userData -> {
+                userData.getUserService().setUserState(userData.getUser().getId(), CATEGORY_DATA_LIST);
                 clearMessages(userData, WAIT_EDIT_TEXT_CONCRETE);
 
                 var page = getPage(userData);

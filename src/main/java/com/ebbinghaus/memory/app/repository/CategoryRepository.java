@@ -3,7 +3,7 @@ package com.ebbinghaus.memory.app.repository;
 import com.ebbinghaus.memory.app.domain.Category;
 import com.ebbinghaus.memory.app.model.CategoryDto;
 import com.ebbinghaus.memory.app.model.CategoryMessageCount;
-import com.ebbinghaus.memory.app.model.CategoryMessageCountProj;
+import com.ebbinghaus.memory.app.model.proj.CategoryMessageCountProj;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

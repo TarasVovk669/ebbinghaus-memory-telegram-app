@@ -60,6 +60,17 @@ public class EMessage {
 
     private LocalDateTime nextExecutionDateTime;
 
+    public void setMessageEntities(Set<EMessageEntity> messageEntities) {
+        this.messageEntities.clear();
+        if (messageEntities != null) {
+            this.messageEntities.addAll(messageEntities);
+        }
+    }
+
+    public void setMessageEntitiesDirectly(Set<EMessageEntity> messageEntities) {
+        this.messageEntities = messageEntities;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
