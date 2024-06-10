@@ -423,7 +423,8 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
     private final Function<InputUserData, Boolean> handleInputText =
             userData -> {
-                if (!userData.getMessageType().isAllowedSize(userData.getMessageText().length())) {
+                if (null != userData.getMessageText()
+                        && !userData.getMessageType().isAllowedSize(userData.getMessageText().length())) {
                     sendMessage(userData.getChatId(),
                             userData.getMessageSourceService().getMessage("messages.error.length-allowed", userData.getLanguageCode()));
 
