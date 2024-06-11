@@ -41,6 +41,8 @@ public class KeyboardFactoryService {
         return ReplyKeyboardMarkup.builder()
                 .keyboard(Arrays.asList(row1, row2))
                 .resizeKeyboard(true)
+                .isPersistent(true)
+                .oneTimeKeyboard(false)
                 .build();
     }
 

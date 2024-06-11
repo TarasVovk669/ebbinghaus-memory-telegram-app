@@ -295,14 +295,14 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                         userData.getChatId(),
                         String.format(userData.getMessageSourceService().getMessage(
                                 "messages.greeting.start",
-                                userData.getLanguageCode()), userData.getUser().getFirstName())
-                );
+                                userData.getLanguageCode()), userData.getUser().getFirstName()),
+                        userData.getKeyboardFactoryService().getMainMenuKeyboard(userData.getLanguageCode()));
+
                 sendMessage(
                         userData.getChatId(),
                         String.format(userData.getMessageSourceService().getMessage(
                                 "messages.greeting.help",
-                                userData.getLanguageCode()), userData.getUser().getFirstName()),
-                        userData.getKeyboardFactoryService().getMainMenuKeyboard(userData.getLanguageCode()));
+                                userData.getLanguageCode()), userData.getUser().getFirstName()));
 
                 userData.getUserService().addUser(userData.getUser());
                 return Boolean.TRUE;
@@ -319,7 +319,6 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                 "messages.help.info",
                                 userData.getLanguageCode()), userData.getUser().getFirstName()),
                         userData.getKeyboardFactoryService().getMainMenuKeyboard(userData.getLanguageCode()));
-
 
                 userData
                         .getChatMessageStateService()
