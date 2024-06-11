@@ -89,15 +89,14 @@ public class KeyboardFactoryService {
             Long messageId, String languageCode, boolean isForwardedMessage) {
         var rowInline = new ArrayList<InlineKeyboardButton>();
 
-        rowInline.add(
-                InlineKeyboardButton.builder()
-                        .text(messageSourceService.getMessage("messages.navigation.back", languageCode))
-                        .callbackData(doTry(() ->
-                                objectMapper.writeValueAsString(
-                                        Map.ofEntries(
-                                                Map.entry(OPERATION, BACK_MESSAGE_CALLBACK),
-                                                Map.entry(MESSAGE_ID, messageId)))))
-                        .build());
+        var backButton = InlineKeyboardButton.builder()
+                .text(messageSourceService.getMessage("messages.navigation.back", languageCode))
+                .callbackData(doTry(() ->
+                        objectMapper.writeValueAsString(
+                                Map.ofEntries(
+                                        Map.entry(OPERATION, BACK_MESSAGE_CALLBACK),
+                                        Map.entry(MESSAGE_ID, messageId)))))
+                .build();
 
         if (!isForwardedMessage) {
             rowInline.add(
@@ -111,6 +110,17 @@ public class KeyboardFactoryService {
                                                             Map.entry(MESSAGE_ID, messageId)))))
                             .build());
         }
+
+        rowInline.add(
+                InlineKeyboardButton.builder()
+                        .text(messageSourceService.getMessage("messages.navigation.restart", languageCode))
+                        .callbackData(doTry(() ->
+                                objectMapper.writeValueAsString(
+                                        Map.ofEntries(
+                                                Map.entry(OPERATION, RESTART_MESSAGE_CALLBACK),
+                                                Map.entry(MESSAGE_ID, messageId)))))
+                        .build());
+
         rowInline.add(
                 InlineKeyboardButton.builder()
                         .text(messageSourceService.getMessage("messages.navigation.delete", languageCode))
@@ -121,7 +131,10 @@ public class KeyboardFactoryService {
                                                 Map.entry(MESSAGE_ID, messageId)))))
                         .build());
 
-        return new InlineKeyboardMarkup(List.of(new InlineKeyboardRow(rowInline)));
+        return new InlineKeyboardMarkup(List.of(
+                new InlineKeyboardRow(backButton),
+                new InlineKeyboardRow(rowInline)
+        ));
     }
 
     public InlineKeyboardMarkup getDeleteKeyboard(Long messageId, String languageCode) {
@@ -141,6 +154,29 @@ public class KeyboardFactoryService {
                                         objectMapper.writeValueAsString(
                                                 Map.ofEntries(
                                                         Map.entry(OPERATION, DELETE_MESSAGE_NO_CALLBACK),
+                                                        Map.entry(MESSAGE_ID, messageId)))))
+                                .build());
+
+        return new InlineKeyboardMarkup(List.of(new InlineKeyboardRow(rowInline)));
+    }
+
+    public InlineKeyboardMarkup getRestartKeyboard(Long messageId, String languageCode) {
+        var rowInline =
+                List.of(
+                        InlineKeyboardButton.builder()
+                                .text(messageSourceService.getMessage("messages.delete.confirmation.yes", languageCode))
+                                .callbackData(doTry(() ->
+                                        objectMapper.writeValueAsString(
+                                                Map.ofEntries(
+                                                        Map.entry(OPERATION, RESTART_MESSAGE_YES_CALLBACK),
+                                                        Map.entry(MESSAGE_ID, messageId)))))
+                                .build(),
+                        InlineKeyboardButton.builder()
+                                .text(messageSourceService.getMessage("messages.delete.confirmation.no", languageCode))
+                                .callbackData(doTry(() ->
+                                        objectMapper.writeValueAsString(
+                                                Map.ofEntries(
+                                                        Map.entry(OPERATION, RESTART_MESSAGE_NO_CALLBACK),
                                                         Map.entry(MESSAGE_ID, messageId)))))
                                 .build());
 

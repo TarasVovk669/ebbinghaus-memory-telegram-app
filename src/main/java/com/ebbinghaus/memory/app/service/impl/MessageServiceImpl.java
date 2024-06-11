@@ -32,6 +32,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.ebbinghaus.memory.app.utils.DateUtils.calculateNextExecutionTime;
+import static java.time.ZoneOffset.UTC;
 
 @Service
 @AllArgsConstructor
@@ -184,6 +185,20 @@ public class MessageServiceImpl implements MessageService {
     public DataMessageCategoryProj getMessageAndCategoryCount(Long ownerId) {
         log.info("Get message and category count for user_id: {}", ownerId);
         return messageRepository.getMessageAndCategoryCount(ownerId);
+    }
+
+    @Override
+    public EMessage restartMessageAndSchedule(Long messageId, Long chatId) {
+        log.info("Restart learning message with id: {}", messageId);
+
+        var updatedMessage = messageRepository.save(
+                messageRepository.findById(messageId)
+                        .map(message -> message.setExecutionStep(1)
+                                .setNextExecutionDateTime(calculateNextExecutionTime(LocalDateTime.now(UTC))))
+                        .orElseThrow(() -> new EntityNotFoundException("Message not found")));
+
+        utilityService.rescheduleJob(updatedMessage,chatId);
+        return updatedMessage;
     }
 
     @NotNull

@@ -1,15 +1,19 @@
 package com.ebbinghaus.memory.app.service.impl;
 
+import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.service.UtilityService;
 import lombok.RequiredArgsConstructor;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
+import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
+
 import static com.ebbinghaus.memory.app.service.impl.SchedulerServiceImpl.JOBS_GROUP;
+import static com.ebbinghaus.memory.app.service.impl.SchedulerServiceImpl.TRIGGERS_GROUP;
 import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
+import static java.time.ZoneOffset.UTC;
 
 
 @Component
@@ -31,5 +35,22 @@ public class UtilityServiceImpl implements UtilityService {
                         ? "Successfully deleted job with key: {}"
                         : "Failed to delete job with key: {}",
                 key);
+    }
+
+    @Override
+    public void rescheduleJob(EMessage message, Long chatId) {
+        log.info("Reschedule job with message: {} and chat_id: {}", message, chatId);
+
+        var key = message.getId().toString().concat(chatId.toString());
+        var jobDetail = doTry(() -> scheduler.getJobDetail(JobKey.jobKey(key, JOBS_GROUP)));
+        var newTrigger = TriggerBuilder.newTrigger()
+                .forJob(jobDetail)
+                .withIdentity(jobDetail.getKey().getName(), TRIGGERS_GROUP)
+                .withDescription(String.format("Send Message Trigger: %s", jobDetail.getKey().getName()))
+                .startAt(Date.from(message.getNextExecutionDateTime().atZone(UTC).toInstant()))
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionFireNow())
+                .build();
+
+        doTry(() -> scheduler.rescheduleJob(TriggerKey.triggerKey(key, TRIGGERS_GROUP), newTrigger));
     }
 }

@@ -29,4 +29,5 @@ public interface MessageService {
 
     DataMessageCategoryProj getMessageAndCategoryCount(Long ownerId);
 
+    EMessage restartMessageAndSchedule(Long messageId, Long chatId);
 }

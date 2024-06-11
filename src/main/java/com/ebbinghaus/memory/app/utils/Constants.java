@@ -26,8 +26,11 @@ public class Constants {
     public static final String NAVIGATION_DATA_LIST_CALLBACK = "ndl";
     public static final String NAVIGATION_CATEGORY_LIST_CALLBACK = "ncl";
     public static final String DELETE_MESSAGE_CALLBACK = "dm";
+    public static final String RESTART_MESSAGE_CALLBACK = "rmc";
     public static final String DELETE_MESSAGE_YES_CALLBACK = "dmy";
+    public static final String RESTART_MESSAGE_YES_CALLBACK = "rmy";
     public static final String DELETE_MESSAGE_NO_CALLBACK = "dmn";
+    public static final String RESTART_MESSAGE_NO_CALLBACK = "rmn";
     public static final String VIEW_PROFILE_LANGUAGE_CALLBACK = "vpl";
     public static final String HOT_IT_WORKS_CALLBACK = "htw";
     public static final String PROFILE_MAIN_MENU_CALLBACK = "pmm";

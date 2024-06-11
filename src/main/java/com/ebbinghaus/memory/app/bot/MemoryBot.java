@@ -97,12 +97,15 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
         functionCallbackDataMap.put(VIEW_SHORT_MESSAGE_CALLBACK, handleShortMessageView);
         functionCallbackDataMap.put(EDIT_MESSAGE_CALLBACK, handleMessageEdit);
         functionCallbackDataMap.put(DELETE_MESSAGE_CALLBACK, handleMessageDelete);
+        functionCallbackDataMap.put(RESTART_MESSAGE_CALLBACK, handleMessageRestart);
         functionCallbackDataMap.put(BACK_MESSAGE_CALLBACK, handleMessageBack);
         functionCallbackDataMap.put(NAVIGATION_DATA_LIST_CALLBACK, handleButtonInfoList);
         functionCallbackDataMap.put(NAVIGATION_CATEGORY_LIST_CALLBACK, handleButtonCategoryList);
         functionCallbackDataMap.put(EDIT_CONCRETE_MESSAGE_CALLBACK, handleEditConcreteMessage);
         functionCallbackDataMap.put(DELETE_MESSAGE_YES_CALLBACK, handleMessageDeleteYes);
-        functionCallbackDataMap.put(DELETE_MESSAGE_NO_CALLBACK, handleMessageDeleteNo);
+        functionCallbackDataMap.put(RESTART_MESSAGE_YES_CALLBACK, handleMessageRestartYes);
+        functionCallbackDataMap.put(DELETE_MESSAGE_NO_CALLBACK, handleMessageNoAction);
+        functionCallbackDataMap.put(RESTART_MESSAGE_NO_CALLBACK, handleMessageNoAction);
         functionCallbackDataMap.put(VIEW_PROFILE_LANGUAGE_CALLBACK, handleMessageChangeLanguage);
         functionCallbackDataMap.put(HOT_IT_WORKS_CALLBACK, howItWorksCallback);
         functionCallbackDataMap.put(PROFILE_MAIN_MENU_CALLBACK, handleProfileMainMenuBack);
@@ -996,32 +999,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                         userData
                                 .getMessageService()
                                 .getMessage(Long.valueOf(userData.getCallBackData().get(MESSAGE_ID)), true);
-                var suffix = userData
-                        .getMessageSourceService()
-                        .getMessage("messages.suffix.execution-time", userData.getLanguageCode());
-                var messageString = parseMessage(message, false,
-                        suffix,
-                        userData.getLanguageCode(),
-                        userData.getMessageSourceService());
-
-                manageMsgType(message)
-                        .editMessage(
-                                MessageDataRequest.builder()
-                                        .chatId(userData.getChatId())
-                                        .messageText(messageString)
-                                        .messageId(userData.getMessageId())
-                                        .entities(
-                                                manageMessageEntitiesShortMessage(
-                                                        message.getMessageEntities(),
-                                                        messageString,
-                                                        SHORT_MESSAGE_SYMBOL_QUANTITY, suffix))
-                                        .replyKeyboard(userData.getKeyboardFactoryService().getMessageKeyboard(
-                                                message.getId(),
-                                                userData.getLanguageCode(),
-                                                message.getType().equals(EMessageType.FORWARDED)))
-                                        .file(message.getFile())
-                                        .build(),
-                                userData.getTelegramClient());
+                sendMessageBack(userData, message);
                 return Boolean.TRUE;
             };
 
@@ -1076,6 +1054,25 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 return Boolean.TRUE;
             };
 
+    private final Function<InputUserData, Boolean> handleMessageRestart =
+            userData -> {
+                var messageId = Long.valueOf(userData.getCallBackData().get(MESSAGE_ID));
+
+                userData
+                        .getMessageType()
+                        .editMessage(
+                                MessageDataRequest.builder()
+                                        .chatId(userData.getChatId())
+                                        .messageText(userData.getMessageSourceService().getMessage("messages.restart.confirmation", userData.getLanguageCode()))
+                                        .messageId(userData.getMessageId())
+                                        .entities(List.of())
+                                        .replyKeyboard(userData.getKeyboardFactoryService().getRestartKeyboard(messageId, userData.getLanguageCode()))
+                                        .file(userData.getFile())
+                                        .build(),
+                                userData.getTelegramClient());
+                return Boolean.TRUE;
+            };
+
     private final Function<InputUserData, Boolean> handleMessageDeleteYes =
             userData -> {
                 deleteMessage(userData.getChatId(), userData.getMessageId());
@@ -1088,37 +1085,25 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 return Boolean.TRUE;
             };
 
-    private final Function<InputUserData, Boolean> handleMessageDeleteNo =
+    private final Function<InputUserData, Boolean> handleMessageRestartYes =
+            userData -> {
+                var message = userData
+                        .getMessageService()
+                        .restartMessageAndSchedule(
+                                Long.valueOf(userData.getCallBackData().get(MESSAGE_ID)),
+                                userData.getChatId());
+                sendMessageBack(userData, message);
+                return Boolean.TRUE;
+            };
+
+    private final Function<InputUserData, Boolean> handleMessageNoAction =
             userData -> {
                 var message =
                         userData
                                 .getMessageService()
                                 .getMessage(Long.valueOf(userData.getCallBackData().get(MESSAGE_ID)), true);
 
-                var suffix = userData
-                        .getMessageSourceService()
-                        .getMessage("messages.suffix.execution-time", userData.getLanguageCode());
-                var messageString = parseMessage(message, false, suffix,
-                        userData.getLanguageCode(), userData.getMessageSourceService());
-
-                manageMsgType(message)
-                        .editMessage(
-                                MessageDataRequest.builder()
-                                        .chatId(userData.getChatId())
-                                        .messageText(messageString)
-                                        .messageId(userData.getMessageId())
-                                        .entities(
-                                                manageMessageEntitiesShortMessage(
-                                                        message.getMessageEntities(),
-                                                        messageString,
-                                                        SHORT_MESSAGE_SYMBOL_QUANTITY, suffix))
-                                        .replyKeyboard(userData.getKeyboardFactoryService().getMessageKeyboard(
-                                                message.getId(),
-                                                userData.getLanguageCode(),
-                                                message.getType().equals(EMessageType.FORWARDED)))
-                                        .file(message.getFile())
-                                        .build(),
-                                userData.getTelegramClient());
+                sendMessageBack(userData, message);
                 return Boolean.TRUE;
             };
 
@@ -1421,5 +1406,32 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 Category.builder()
                         .name(isForwardedMessage ? FORWARDED : UNCATEGORIZED)
                         .build());
+    }
+
+    private void sendMessageBack(InputUserData userData, EMessage message) {
+        var suffix = userData
+                .getMessageSourceService()
+                .getMessage("messages.suffix.execution-time", userData.getLanguageCode());
+        var messageString = parseMessage(message, false, suffix,
+                userData.getLanguageCode(), userData.getMessageSourceService());
+
+        manageMsgType(message)
+                .editMessage(
+                        MessageDataRequest.builder()
+                                .chatId(userData.getChatId())
+                                .messageText(messageString)
+                                .messageId(userData.getMessageId())
+                                .entities(
+                                        manageMessageEntitiesShortMessage(
+                                                message.getMessageEntities(),
+                                                messageString,
+                                                SHORT_MESSAGE_SYMBOL_QUANTITY, suffix))
+                                .replyKeyboard(userData.getKeyboardFactoryService().getMessageKeyboard(
+                                        message.getId(),
+                                        userData.getLanguageCode(),
+                                        message.getType().equals(EMessageType.FORWARDED)))
+                                .file(message.getFile())
+                                .build(),
+                        userData.getTelegramClient());
     }
 }
