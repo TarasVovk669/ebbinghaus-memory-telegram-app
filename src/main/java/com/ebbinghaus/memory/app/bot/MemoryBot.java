@@ -1266,7 +1266,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
         try {
             telegramClient.execute(DeleteMessage.builder().chatId(chatId).messageId(messageId).build());
         } catch (TelegramApiException e) {
-            log.error("Error: ", e);
+            log.warn("Error to delete messages with chat_id:{} and message_id: {} and error_message: {}", chatId, messageId, e.getMessage());
         }
     }
 
@@ -1274,7 +1274,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
         try {
             telegramClient.execute(DeleteMessages.builder().chatId(chatId).messageIds(messageIds).build());
         } catch (TelegramApiException e) {
-            log.error("Error: ", e);
+            log.warn("Error to delete messages with chat_id:{} and message_ids: {} and error_message: {}", chatId, messageIds, e.getMessage());
         }
     }
 
