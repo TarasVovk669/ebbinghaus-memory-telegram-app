@@ -101,6 +101,7 @@ public class UserServiceImpl implements UserService {
         userStateRepository.save(EUserState.builder()
                 .userId(userId)
                 .state(state)
+                        .dateTime(LocalDateTime.now(UTC))
                 .build());
     }
 }
