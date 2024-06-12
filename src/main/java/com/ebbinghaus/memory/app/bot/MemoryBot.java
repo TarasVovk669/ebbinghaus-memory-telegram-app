@@ -16,9 +16,11 @@ import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsume
 import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessages;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
@@ -29,6 +31,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
+import java.io.File;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -294,12 +297,20 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
             userData -> {
                 userData.getUserService().setUserState(userData.getUser().getId(), MAIN_MENU);
 
-                sendMessage(
+                String url = String.format(
+                        userData.getMessageSourceService().getMessage(
+                                "messages.image.url",
+                                userData.getLanguageCode()),
+                        userData.getLanguageCode());
+
+                Message photoMessage = sendPhotoMessage(
                         userData.getChatId(),
                         String.format(userData.getMessageSourceService().getMessage(
                                 "messages.greeting.start",
                                 userData.getLanguageCode()), userData.getUser().getFirstName()),
-                        userData.getKeyboardFactoryService().getMainMenuKeyboard(userData.getLanguageCode()));
+                        userData.getKeyboardFactoryService().getMainMenuKeyboard(userData.getLanguageCode()),
+                        url,
+                        IMAGE_CACHE_MAP.get(url));
 
                 sendMessage(
                         userData.getChatId(),
@@ -308,6 +319,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                 userData.getLanguageCode()), userData.getUser().getFirstName()));
 
                 userData.getUserService().addUser(userData.getUser());
+                IMAGE_CACHE_MAP.putIfAbsent(url, photoMessage.getPhoto().getFirst().getFileId());
                 return Boolean.TRUE;
             };
 
@@ -1231,6 +1243,23 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
             log.error("Error: ", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private Message sendPhotoMessage(
+            long chatId,
+            String text,
+            ReplyKeyboard replyKeyboard,
+            String url,
+            String fileId) {
+        return doTryTgCall(() ->
+                telegramClient.execute(
+                        SendPhoto.builder()
+                                .chatId(chatId)
+                                .caption(text)
+                                .parseMode("markdown")
+                                .replyMarkup(replyKeyboard)
+                                .photo(null != fileId ? new InputFile(fileId) : new InputFile(new File(url)))
+                                .build()));
     }
 
     private void deleteMessage(long chatId, int messageId) {

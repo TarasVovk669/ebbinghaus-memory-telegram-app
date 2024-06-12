@@ -87,19 +87,20 @@ public class KeyboardFactoryService {
 
     public InlineKeyboardMarkup getViewKeyboard(
             Long messageId, String languageCode, boolean isForwardedMessage) {
-        var rowInline = new ArrayList<InlineKeyboardButton>();
+        var rowInline = new ArrayList<InlineKeyboardRow>();
 
-        var backButton = InlineKeyboardButton.builder()
-                .text(messageSourceService.getMessage("messages.navigation.back", languageCode))
-                .callbackData(doTry(() ->
-                        objectMapper.writeValueAsString(
-                                Map.ofEntries(
-                                        Map.entry(OPERATION, BACK_MESSAGE_CALLBACK),
-                                        Map.entry(MESSAGE_ID, messageId)))))
-                .build();
+        rowInline.add(new InlineKeyboardRow(
+                InlineKeyboardButton.builder()
+                        .text(messageSourceService.getMessage("messages.navigation.back", languageCode))
+                        .callbackData(doTry(() ->
+                                objectMapper.writeValueAsString(
+                                        Map.ofEntries(
+                                                Map.entry(OPERATION, BACK_MESSAGE_CALLBACK),
+                                                Map.entry(MESSAGE_ID, messageId)))))
+                        .build()));
 
         if (!isForwardedMessage) {
-            rowInline.add(
+            rowInline.add(new InlineKeyboardRow(
                     InlineKeyboardButton.builder()
                             .text(messageSourceService.getMessage("messages.navigation.edit", languageCode))
                             .callbackData(doTry(
@@ -108,10 +109,10 @@ public class KeyboardFactoryService {
                                                     Map.ofEntries(
                                                             Map.entry(OPERATION, EDIT_MESSAGE_CALLBACK),
                                                             Map.entry(MESSAGE_ID, messageId)))))
-                            .build());
+                            .build()));
         }
 
-        rowInline.add(
+        rowInline.add(new InlineKeyboardRow(
                 InlineKeyboardButton.builder()
                         .text(messageSourceService.getMessage("messages.navigation.restart", languageCode))
                         .callbackData(doTry(() ->
@@ -119,9 +120,9 @@ public class KeyboardFactoryService {
                                         Map.ofEntries(
                                                 Map.entry(OPERATION, RESTART_MESSAGE_CALLBACK),
                                                 Map.entry(MESSAGE_ID, messageId)))))
-                        .build());
+                        .build()));
 
-        rowInline.add(
+        rowInline.add(new InlineKeyboardRow(
                 InlineKeyboardButton.builder()
                         .text(messageSourceService.getMessage("messages.navigation.delete", languageCode))
                         .callbackData(doTry(() ->
@@ -129,12 +130,9 @@ public class KeyboardFactoryService {
                                         Map.ofEntries(
                                                 Map.entry(OPERATION, DELETE_MESSAGE_CALLBACK),
                                                 Map.entry(MESSAGE_ID, messageId)))))
-                        .build());
+                        .build()));
 
-        return new InlineKeyboardMarkup(List.of(
-                new InlineKeyboardRow(backButton),
-                new InlineKeyboardRow(rowInline)
-        ));
+        return new InlineKeyboardMarkup(rowInline);
     }
 
     public InlineKeyboardMarkup getDeleteKeyboard(Long messageId, String languageCode) {

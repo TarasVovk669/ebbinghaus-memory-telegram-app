@@ -68,6 +68,7 @@ public class Constants {
     public final static Map<String, AtomicInteger> COUNT_MAP = new ConcurrentReferenceHashMap<>(100, ConcurrentReferenceHashMap.ReferenceType.WEAK);
     public static final TypeReference<HashMap<String, String>> MAP_TYPE_REF = new TypeReference<>() {
     };
+    public static final Map<String, String> IMAGE_CACHE_MAP = new HashMap<>();
     public static final Map<Integer, Long> INTERVAL_MAP =
             Map.ofEntries(
                     Map.entry(1, 30L),
@@ -81,11 +82,9 @@ public class Constants {
                     Map.entry(9, 24 * 30 * 60 * 24L),
                     Map.entry(10, 60 * 30 * 60 * 24L)
             );
-
     public static final Map<String, LanguageData> AVAILABLE_LANGUAGES_MAP =
             Map.ofEntries(
                     Map.entry("en", new LanguageData("\uD83C\uDDFA\uD83C\uDDF8", "English")),
                     Map.entry("uk", new LanguageData("\uD83C\uDDFA\uD83C\uDDE6", "Українська")),
-                    Map.entry("ru", new LanguageData("\uD83C\uDDF7\uD83C\uDDFA", "Русский"))
-            );
+                    Map.entry("ru", new LanguageData("\uD83C\uDDF7\uD83C\uDDFA", "Русский")));
 }
