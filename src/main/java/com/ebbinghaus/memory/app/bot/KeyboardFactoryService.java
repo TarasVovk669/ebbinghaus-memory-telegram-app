@@ -136,8 +136,8 @@ public class KeyboardFactoryService {
     }
 
     public InlineKeyboardMarkup getDeleteKeyboard(Long messageId, String languageCode) {
-        var rowInline =
-                List.of(
+        return new InlineKeyboardMarkup(
+                List.of(new InlineKeyboardRow(List.of(
                         InlineKeyboardButton.builder()
                                 .text(messageSourceService.getMessage("messages.delete.confirmation.yes", languageCode))
                                 .callbackData(doTry(() ->
@@ -153,14 +153,12 @@ public class KeyboardFactoryService {
                                                 Map.ofEntries(
                                                         Map.entry(OPERATION, DELETE_MESSAGE_NO_CALLBACK),
                                                         Map.entry(MESSAGE_ID, messageId)))))
-                                .build());
-
-        return new InlineKeyboardMarkup(List.of(new InlineKeyboardRow(rowInline)));
+                                .build()))));
     }
 
     public InlineKeyboardMarkup getRestartKeyboard(Long messageId, String languageCode) {
-        var rowInline =
-                List.of(
+        return new InlineKeyboardMarkup(
+                List.of(new InlineKeyboardRow(List.of(
                         InlineKeyboardButton.builder()
                                 .text(messageSourceService.getMessage("messages.delete.confirmation.yes", languageCode))
                                 .callbackData(doTry(() ->
@@ -176,9 +174,7 @@ public class KeyboardFactoryService {
                                                 Map.ofEntries(
                                                         Map.entry(OPERATION, RESTART_MESSAGE_NO_CALLBACK),
                                                         Map.entry(MESSAGE_ID, messageId)))))
-                                .build());
-
-        return new InlineKeyboardMarkup(List.of(new InlineKeyboardRow(rowInline)));
+                                .build()))));
     }
 
     public InlineKeyboardMarkup getProfileKeyboard(String languageCode) {

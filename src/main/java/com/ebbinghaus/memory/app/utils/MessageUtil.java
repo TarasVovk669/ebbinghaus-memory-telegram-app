@@ -17,8 +17,7 @@ public class MessageUtil {
         var entities =
                 new ArrayList<>(
                         messageEntities.stream()
-                                .map(me -> doTry(() -> objectMapper.readValue(me, MessageEntity.class))
-                                )
+                                .map(me -> doTry(() -> objectMapper.readValue(me, MessageEntity.class)))
                                 .toList());
 
         if (addSuffix) {
