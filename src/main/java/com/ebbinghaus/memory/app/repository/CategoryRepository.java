@@ -31,7 +31,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
             LEFT JOIN c.messageCategories m
             WHERE c.ownerId = :ownerId
             GROUP BY c.id, c.name
-            ORDER BY (CASE WHEN c.name = '#uncategorized' THEN 0 ELSE 1 END), c.name
+            ORDER BY (CASE  WHEN c.name = '#uncategorized' THEN 0  WHEN c.name = '#forwarded' THEN 1  ELSE 2 END), c.name
             """)
     Page<CategoryMessageCount> findCategoryMessageCounts(@Param("ownerId") Long ownerId, Pageable pageable);
 
