@@ -2,7 +2,6 @@ package com.ebbinghaus.memory.app.service.impl;
 
 import com.ebbinghaus.memory.app.bot.KeyboardFactoryService;
 import com.ebbinghaus.memory.app.domain.EMessage;
-import com.ebbinghaus.memory.app.domain.EMessageEntity;
 import com.ebbinghaus.memory.app.domain.EMessageType;
 import com.ebbinghaus.memory.app.domain.ScheduleMessageErrorQueue;
 import com.ebbinghaus.memory.app.exception.TelegramCallException;
@@ -29,7 +28,8 @@ import java.util.Date;
 import static com.ebbinghaus.memory.app.bot.MemoryBot.manageMsgType;
 import static com.ebbinghaus.memory.app.bot.MemoryBot.parseMessage;
 import static com.ebbinghaus.memory.app.utils.Constants.SERVER_MOST_POPULAR_ERRORS;
-import static com.ebbinghaus.memory.app.utils.MessageUtil.manageMessageEntitiesLongMessage;
+import static com.ebbinghaus.memory.app.utils.Constants.SHORT_MESSAGE_SYMBOL_QUANTITY;
+import static com.ebbinghaus.memory.app.utils.MessageUtil.manageMessageEntitiesShortMessage;
 import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
 import static java.time.ZoneOffset.UTC;
 
@@ -81,12 +81,12 @@ public class SchedulerServiceImpl extends QuartzJobBean implements SchedulerServ
                                     .messageText(messageString)
                                     .messageId(message.getId().intValue())
                                     .entities(
-                                            manageMessageEntitiesLongMessage(
-                                                    message.getMessageEntities()
-                                                            .stream()
-                                                            .map(EMessageEntity::getValue)
-                                                            .toList(),
-                                                    messageString, true, suffix, objectMapper))
+                                            manageMessageEntitiesShortMessage(
+                                                    message.getMessageEntities(),
+                                                    messageString,
+                                                    SHORT_MESSAGE_SYMBOL_QUANTITY,
+                                                    suffix,
+                                                    objectMapper))
                                     .replyKeyboard(keyboardFactoryService.getMessageKeyboard(
                                             message.getId(),
                                             languageCode,

@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
@@ -44,6 +43,7 @@ import static com.ebbinghaus.memory.app.utils.Constants.HELP;
 import static com.ebbinghaus.memory.app.utils.Constants.*;
 import static com.ebbinghaus.memory.app.utils.DateUtils.calculateNextExecutionTime;
 import static com.ebbinghaus.memory.app.utils.DateUtils.formatDuration;
+import static com.ebbinghaus.memory.app.utils.MessageUtil.*;
 import static com.ebbinghaus.memory.app.utils.ObjectUtils.*;
 import static java.time.ZoneOffset.UTC;
 
@@ -462,7 +462,9 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                                 manageMessageEntitiesShortMessage(
                                                         message.getMessageEntities(),
                                                         messageString,
-                                                        SHORT_MESSAGE_SYMBOL_QUANTITY, suffix))
+                                                        SHORT_MESSAGE_SYMBOL_QUANTITY,
+                                                        suffix,
+                                                        userData.getObjectMapper()))
                                         .replyKeyboard(userData.getKeyboardFactoryService()
                                                 .getMessageKeyboard(
                                                         message.getId(),
@@ -476,53 +478,6 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 userData.getUserService().setUserState(userData.getUser().getId(), MAIN_MENU);
                 return Boolean.TRUE;
             };
-
-    private List<MessageEntity> manageMessageEntitiesShortMessage(
-            Collection<EMessageEntity> messageEntities, String messageString, Integer maxLength, String suffix) {
-        var entities = new ArrayList<>(getMessageEntities(messageEntities, maxLength));
-        entities.add(
-                MessageEntity.builder()
-                        .type(BOLD_STYLE)
-                        .offset(messageString.lastIndexOf(suffix))
-                        .length(suffix.length())
-                        .build());
-        return entities;
-    }
-
-    @NotNull
-    private List<MessageEntity> getMessageEntities(
-            Collection<EMessageEntity> messageEntities, Integer maxLength) {
-        return Optional.ofNullable(messageEntities)
-                .map(mes ->
-                        mes.stream()
-                                .map(me -> doTry(() -> objectMapper.readValue(me.getValue(), MessageEntity.class)))
-                                .filter(me -> me.getOffset() < maxLength)
-                                .peek(me -> {
-                                    if (me.getOffset() + me.getLength() > maxLength) {
-                                        me.setLength((maxLength - me.getOffset()) + DOTS_STR.length());
-                                    }
-                                })
-                                .toList())
-                .orElse(Collections.emptyList());
-    }
-
-    private List<MessageEntity> manageMessageEntitiesLongMessage(
-            Collection<String> messageEntities, String messageString, boolean addSuffix, String suffix) {
-        var entities =
-                new ArrayList<>(messageEntities.stream()
-                        .map(me -> doTry(() -> objectMapper.readValue(me, MessageEntity.class)))
-                        .toList());
-
-        if (addSuffix) {
-            entities.add(
-                    MessageEntity.builder()
-                            .type(BOLD_STYLE)
-                            .offset(messageString.lastIndexOf(suffix))
-                            .length(suffix.length())
-                            .build());
-        }
-        return entities;
-    }
 
     private final Function<InputUserData, Boolean> handleButtonAddNewInfo =
             userData -> {
@@ -636,7 +591,10 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                     });
 
                             entities.addAll(
-                                    getMessageEntities(m.getMessageEntities(), msgString.length()).stream()
+                                    getMessageEntities(m.getMessageEntities(),
+                                            msgString.length(),
+                                            userData.getObjectMapper())
+                                            .stream()
                                             .peek(me -> me.setOffset(me.getOffset() + result.length()))
                                             .toList());
                             result.append(msgString).append("\n\n");
@@ -952,7 +910,11 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                         .entities(
                                                 manageMessageEntitiesLongMessage(
                                                         message.getMessageEntities().stream()
-                                                                .map(EMessageEntity::getValue).toList(), messageString, true, suffix))
+                                                                .map(EMessageEntity::getValue).toList(),
+                                                        messageString,
+                                                        true,
+                                                        suffix,
+                                                        userData.getObjectMapper()))
                                         .replyKeyboard(userData.getKeyboardFactoryService().getViewKeyboard(
                                                 message.getId(),
                                                 userData.getLanguageCode(),
@@ -987,7 +949,9 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                                         manageMessageEntitiesShortMessage(
                                                                 message.getMessageEntities(),
                                                                 messageString,
-                                                                SHORT_MESSAGE_SYMBOL_QUANTITY, suffix))
+                                                                SHORT_MESSAGE_SYMBOL_QUANTITY,
+                                                                suffix,
+                                                                userData.getObjectMapper()))
                                                 .replyKeyboard(userData.getKeyboardFactoryService().getMessageKeyboard(
                                                         message.getId(),
                                                         userData.getLanguageCode(),
@@ -1178,7 +1142,9 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                                 manageMessageEntitiesShortMessage(
                                                         editedMessage.getMessageEntities(),
                                                         messageString,
-                                                        SHORT_MESSAGE_SYMBOL_QUANTITY, suffix))
+                                                        SHORT_MESSAGE_SYMBOL_QUANTITY,
+                                                        suffix,
+                                                        userData.getObjectMapper()))
                                         .replyKeyboard(userData.getKeyboardFactoryService().getMessageKeyboard(
                                                 editedMessage.getId(),
                                                 userData.getLanguageCode(),
@@ -1456,7 +1422,8 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                         manageMessageEntitiesShortMessage(
                                                 message.getMessageEntities(),
                                                 messageString,
-                                                SHORT_MESSAGE_SYMBOL_QUANTITY, suffix))
+                                                SHORT_MESSAGE_SYMBOL_QUANTITY, suffix,
+                                                userData.getObjectMapper()))
                                 .replyKeyboard(userData.getKeyboardFactoryService().getMessageKeyboard(
                                         message.getId(),
                                         userData.getLanguageCode(),

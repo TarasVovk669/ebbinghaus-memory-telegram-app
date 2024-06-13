@@ -17,7 +17,6 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.List;
 
-import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
 import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTryTgCall;
 
 public enum MessageType {
@@ -39,7 +38,7 @@ public enum MessageType {
 
         @Override
         public Message sendMessage(MessageDataRequest data, TelegramClient telegramClient) {
-            return doTry(
+            return doTryTgCall(
                     () ->
                             telegramClient.execute(
                                     SendMessage.builder()
