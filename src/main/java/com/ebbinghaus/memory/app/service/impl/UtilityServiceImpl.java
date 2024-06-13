@@ -43,14 +43,23 @@ public class UtilityServiceImpl implements UtilityService {
 
         var key = message.getId().toString().concat(chatId.toString());
         var jobDetail = doTry(() -> scheduler.getJobDetail(JobKey.jobKey(key, JOBS_GROUP)));
+        var triggerKey = TriggerKey.triggerKey(key, TRIGGERS_GROUP);
+
         var newTrigger = TriggerBuilder.newTrigger()
                 .forJob(jobDetail)
-                .withIdentity(jobDetail.getKey().getName(), TRIGGERS_GROUP)
+                .withIdentity(triggerKey)
                 .withDescription(String.format("Send Message Trigger: %s", jobDetail.getKey().getName()))
                 .startAt(Date.from(message.getNextExecutionDateTime().atZone(UTC).toInstant()))
                 .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionFireNow())
                 .build();
 
-        doTry(() -> scheduler.rescheduleJob(TriggerKey.triggerKey(key, TRIGGERS_GROUP), newTrigger));
+        if(doTry(() -> scheduler.checkExists(triggerKey))){
+            log.info("Reschedule job with key: {}", triggerKey);
+            doTry(() -> scheduler.rescheduleJob(triggerKey, newTrigger));
+        }else{
+            log.info("Create trigger for job with key: {}", triggerKey);
+            doTry(() -> scheduler.scheduleJob(newTrigger));
+        }
+
     }
 }
