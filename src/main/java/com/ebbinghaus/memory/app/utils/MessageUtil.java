@@ -7,7 +7,6 @@ import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import java.util.*;
 
 import static com.ebbinghaus.memory.app.utils.Constants.BOLD_STYLE;
-import static com.ebbinghaus.memory.app.utils.Constants.DOTS_STR;
 import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
 
 public class MessageUtil {
@@ -53,7 +52,7 @@ public class MessageUtil {
                                 .filter(me -> me.getOffset() < maxLength)
                                 .peek(me -> {
                                     if (me.getOffset() + me.getLength() > maxLength) {
-                                        me.setLength((maxLength - me.getOffset()) + DOTS_STR.length());
+                                        me.setLength(maxLength - me.getOffset());
                                     }
                                 })
                                 .toList())

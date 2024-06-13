@@ -590,10 +590,12 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                                 .build());
                                     });
 
+                            var list = getMessageEntities(
+                                    m.getMessageEntities(),
+                                    msgString.length(),
+                                    userData.getObjectMapper());
                             entities.addAll(
-                                    getMessageEntities(m.getMessageEntities(),
-                                            msgString.length(),
-                                            userData.getObjectMapper())
+                                    list
                                             .stream()
                                             .peek(me -> me.setOffset(me.getOffset() + result.length()))
                                             .toList());
@@ -1272,7 +1274,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 result.append(text);
             } else {
                 if (isTrimParagraph) {
-                    text = text.replaceAll("\n\n", "");
+                    text = text.replaceAll("\n\n", "  ");
                 }
                 result.append(text, 0, Math.min(text.length(), maxLength));
                 if (text.length() > maxLength) {
