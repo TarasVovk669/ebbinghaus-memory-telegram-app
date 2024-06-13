@@ -302,7 +302,9 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                         userData.getMessageSourceService().getMessage(
                                 "messages.image.url",
                                 userData.getLanguageCode()),
-                        userData.getLanguageCode());
+                        AVAILABLE_LANGUAGES_MAP.containsKey(userData.getLanguageCode())
+                                ? userData.getLanguageCode()
+                                : DEFAULT_LANGUAGE_CODE);
 
                 Message photoMessage = sendPhotoMessage(
                         userData.getChatId(),
