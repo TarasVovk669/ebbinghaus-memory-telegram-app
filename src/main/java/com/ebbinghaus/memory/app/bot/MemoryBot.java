@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
@@ -302,6 +303,9 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                 "messages.image.url",
                                 userData.getLanguageCode()),
                         userData.getLanguageCode());
+
+                log.info("url: {}", url);
+                //    ../../../../static/img/start_uk.jpg
 
                 Message photoMessage = sendPhotoMessage(
                         userData.getChatId(),
@@ -1258,7 +1262,10 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                 .caption(text)
                                 .parseMode("markdown")
                                 .replyMarkup(replyKeyboard)
-                                .photo(null != fileId ? new InputFile(fileId) : new InputFile(new File(url)))
+                                .photo(null != fileId ? new InputFile(fileId) :
+                                        new InputFile(
+                                                new ClassPathResource(url).getFile()
+                                        ))
                                 .build()));
     }
 

@@ -10,7 +10,6 @@
           max-file: "3"
       volumes:
         - local:/var/lib/ebbinghaus-memory-bot/
-        - emtb-log-path:/logs
       environment:
         DB_HOST: ${EMTB_DB_HOST}
         DB_NAME: ${EMTB_DB_NAME}
@@ -44,12 +43,6 @@
   volumes:
     postgres_data:
       driver: local
-    emtb-log-path:
-      driver: local
-      driver_opts:
-        type: none
-        o: bind
-        device: ${EMTB_LOG_PATH}
     local:
       driver: local
 
