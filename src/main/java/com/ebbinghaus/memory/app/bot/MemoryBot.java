@@ -304,9 +304,6 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                 userData.getLanguageCode()),
                         userData.getLanguageCode());
 
-                log.info("url: {}", url);
-                //    ../../../../static/img/start_uk.jpg
-
                 Message photoMessage = sendPhotoMessage(
                         userData.getChatId(),
                         String.format(userData.getMessageSourceService().getMessage(
@@ -1263,9 +1260,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                 .parseMode("markdown")
                                 .replyMarkup(replyKeyboard)
                                 .photo(null != fileId ? new InputFile(fileId) :
-                                        new InputFile(
-                                                new ClassPathResource(url).getFile()
-                                        ))
+                                        new InputFile(new File(url)))
                                 .build()));
     }
 
