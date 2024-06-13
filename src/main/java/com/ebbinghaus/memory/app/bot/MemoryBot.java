@@ -496,7 +496,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 .map(mes ->
                         mes.stream()
                                 .map(me -> doTry(() -> objectMapper.readValue(me.getValue(), MessageEntity.class)))
-                                .filter(me -> me.getOffset() <= maxLength)
+                                .filter(me -> me.getOffset() < maxLength)
                                 .peek(me -> {
                                     if (me.getOffset() + me.getLength() > maxLength) {
                                         me.setLength((maxLength - me.getOffset()) + DOTS_STR.length());
