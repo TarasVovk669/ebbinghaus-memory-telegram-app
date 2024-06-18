@@ -27,6 +27,7 @@ public class Constants {
     public static final String NAVIGATION_CATEGORY_LIST_CALLBACK = "ncl";
     public static final String DELETE_MESSAGE_CALLBACK = "dm";
     public static final String RESTART_MESSAGE_CALLBACK = "rmc";
+    public static final String TEST_MESSAGE_CALLBACK = "tm";
     public static final String DELETE_MESSAGE_YES_CALLBACK = "dmy";
     public static final String RESTART_MESSAGE_YES_CALLBACK = "rmy";
     public static final String DELETE_MESSAGE_NO_CALLBACK = "dmn";

@@ -51,6 +51,7 @@ import static java.time.ZoneOffset.UTC;
 public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(MemoryBot.class);
+    public static final int MINIMUM_TEST_PASSED_LENGTH = 500;
 
     private final String token;
     private final String ownerName;
@@ -102,6 +103,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
         functionCallbackDataMap.put(EDIT_MESSAGE_CALLBACK, handleMessageEdit);
         functionCallbackDataMap.put(DELETE_MESSAGE_CALLBACK, handleMessageDelete);
         functionCallbackDataMap.put(RESTART_MESSAGE_CALLBACK, handleMessageRestart);
+        functionCallbackDataMap.put(TEST_MESSAGE_CALLBACK, handleTestMessage);
         functionCallbackDataMap.put(BACK_MESSAGE_CALLBACK, handleMessageBack);
         functionCallbackDataMap.put(NAVIGATION_DATA_LIST_CALLBACK, handleButtonInfoList);
         functionCallbackDataMap.put(NAVIGATION_CATEGORY_LIST_CALLBACK, handleButtonCategoryList);
@@ -919,10 +921,15 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                                         true,
                                                         suffix,
                                                         userData.getObjectMapper()))
-                                        .replyKeyboard(userData.getKeyboardFactoryService().getViewKeyboard(
-                                                message.getId(),
-                                                userData.getLanguageCode(),
-                                                message.getType().equals(EMessageType.FORWARDED)))
+                                        .replyKeyboard(
+                                                userData.getKeyboardFactoryService().getViewKeyboard(
+                                                        message.getId(),
+                                                        userData.getLanguageCode(),
+                                                        message.getType().equals(EMessageType.FORWARDED),
+                                                        null == message.getFile()
+                                                                || (null != message.getText()
+                                                                && messageString.length() >= MINIMUM_TEST_PASSED_LENGTH)
+                                                ))
                                         .file(message.getFile())
                                         .build(),
                                 userData.getTelegramClient());
@@ -1037,6 +1044,27 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
     private final Function<InputUserData, Boolean> handleMessageRestart =
             userData -> {
+                var messageId = Long.valueOf(userData.getCallBackData().get(MESSAGE_ID));
+
+                userData
+                        .getMessageType()
+                        .editMessage(
+                                MessageDataRequest.builder()
+                                        .chatId(userData.getChatId())
+                                        .messageText(userData.getMessageSourceService().getMessage("messages.restart.confirmation", userData.getLanguageCode()))
+                                        .messageId(userData.getMessageId())
+                                        .entities(List.of())
+                                        .replyKeyboard(userData.getKeyboardFactoryService().getRestartKeyboard(messageId, userData.getLanguageCode()))
+                                        .file(userData.getFile())
+                                        .build(),
+                                userData.getTelegramClient());
+                return Boolean.TRUE;
+            };
+
+    //todo: in future
+    private final Function<InputUserData, Boolean> handleTestMessage =
+            userData -> {
+        //change
                 var messageId = Long.valueOf(userData.getCallBackData().get(MESSAGE_ID));
 
                 userData

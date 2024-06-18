@@ -60,33 +60,11 @@ public class KeyboardFactoryService {
                                                 Map.entry(MESSAGE_ID, messageId)))))
                         .build());
 
-        if (!isForwardedMessage) {
-            rowInline.add(
-                    InlineKeyboardButton.builder()
-                            .text(messageSourceService.getMessage("messages.navigation.edit", languageCode))
-                            .callbackData(doTry(() ->
-                                    objectMapper.writeValueAsString(
-                                            Map.ofEntries(
-                                                    Map.entry(OPERATION, EDIT_MESSAGE_CALLBACK),
-                                                    Map.entry(MESSAGE_ID, messageId)))))
-                            .build());
-        }
-
-        rowInline.add(
-                InlineKeyboardButton.builder()
-                        .text(messageSourceService.getMessage("messages.navigation.delete", languageCode))
-                        .callbackData(doTry(() ->
-                                objectMapper.writeValueAsString(
-                                        Map.ofEntries(
-                                                Map.entry(OPERATION, DELETE_MESSAGE_CALLBACK),
-                                                Map.entry(MESSAGE_ID, messageId)))))
-                        .build());
-
         return new InlineKeyboardMarkup(List.of(new InlineKeyboardRow(rowInline)));
     }
 
     public InlineKeyboardMarkup getViewKeyboard(
-            Long messageId, String languageCode, boolean isForwardedMessage) {
+            Long messageId, String languageCode, boolean isForwardedMessage, boolean isSimpleMessage) {
         var rowInline = new ArrayList<InlineKeyboardRow>();
 
         rowInline.add(new InlineKeyboardRow(
@@ -96,6 +74,28 @@ public class KeyboardFactoryService {
                                 objectMapper.writeValueAsString(
                                         Map.ofEntries(
                                                 Map.entry(OPERATION, BACK_MESSAGE_CALLBACK),
+                                                Map.entry(MESSAGE_ID, messageId)))))
+                        .build()));
+
+        if (isSimpleMessage) {
+            rowInline.add(new InlineKeyboardRow(
+                    InlineKeyboardButton.builder()
+                            .text(messageSourceService.getMessage("messages.navigation.test", languageCode))
+                            .callbackData(doTry(() ->
+                                    objectMapper.writeValueAsString(
+                                            Map.ofEntries(
+                                                    Map.entry(OPERATION, TEST_MESSAGE_CALLBACK),
+                                                    Map.entry(MESSAGE_ID, messageId)))))
+                            .build()));
+        }
+
+        rowInline.add(new InlineKeyboardRow(
+                InlineKeyboardButton.builder()
+                        .text(messageSourceService.getMessage("messages.navigation.restart", languageCode))
+                        .callbackData(doTry(() ->
+                                objectMapper.writeValueAsString(
+                                        Map.ofEntries(
+                                                Map.entry(OPERATION, RESTART_MESSAGE_CALLBACK),
                                                 Map.entry(MESSAGE_ID, messageId)))))
                         .build()));
 
@@ -111,16 +111,6 @@ public class KeyboardFactoryService {
                                                             Map.entry(MESSAGE_ID, messageId)))))
                             .build()));
         }
-
-        rowInline.add(new InlineKeyboardRow(
-                InlineKeyboardButton.builder()
-                        .text(messageSourceService.getMessage("messages.navigation.restart", languageCode))
-                        .callbackData(doTry(() ->
-                                objectMapper.writeValueAsString(
-                                        Map.ofEntries(
-                                                Map.entry(OPERATION, RESTART_MESSAGE_CALLBACK),
-                                                Map.entry(MESSAGE_ID, messageId)))))
-                        .build()));
 
         rowInline.add(new InlineKeyboardRow(
                 InlineKeyboardButton.builder()
