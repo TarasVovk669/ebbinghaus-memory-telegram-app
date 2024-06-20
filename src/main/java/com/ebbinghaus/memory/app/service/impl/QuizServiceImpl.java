@@ -84,7 +84,12 @@ public class QuizServiceImpl implements QuizService {
                                     //1)total question
                                     //2)answered question
                                     //3)correct question
+                                    var result = quizQuestionRepository.findQuizStatisticsByQuizId(quiz.getId());
 
+
+                                    System.out.println(result.getTotalQuestions());
+                                    System.out.println(result.getAnsweredQuestions());
+                                    System.out.println(result.getCorrectQuestions());
 
                                     doTry(() -> telegramClient.execute(
                                             EditMessageText.builder()

@@ -38,10 +38,7 @@ public class Constants {
     public static final String PROFILE_MAIN_MENU_CALLBACK = "pmm";
     public static final String CHANGE_PROFILE_LANGUAGE_CALLBACK = "cpl";
     public static final String CONTACT_INFO_CALLBACK = "cic";
-
     public static final String QUIZ_QUESTION_CALLBACK = "qqc";
-    public static final String QUIZ_YES_QUESTION_CALLBACK = "qyc";
-    public static final String QUIZ_NO_QUESTION_CALLBACK = "qnc";
 
 
     public static final String UNCATEGORIZED = "#uncategorized";

@@ -123,6 +123,8 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
         functionCallbackDataMap.put(CHANGE_PROFILE_LANGUAGE_CALLBACK, handleChangeLanguage);
         functionCallbackDataMap.put(CONTACT_INFO_CALLBACK, handleContactInfo);
 
+        functionCallbackDataMap.put(QUIZ_QUESTION_CALLBACK, handleQuizQuestion);
+
         functionUserStateMap.put(WAIT_TEXT, handleInputText);
         functionUserStateMap.put(WAIT_FORWARDED_MESSAGE, handleInputText);
     }
@@ -448,6 +450,26 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                         userData.getMessageId());
                 return Boolean.TRUE;
             };
+
+    //todo: change refactor
+    private final Function<InputUserData, Boolean> handleQuizQuestion =
+            userData -> {
+                var text = String.format(userData.getMessageSourceService()
+                                .getMessage("messages.profile.contact-info.text", userData.getLanguageCode()),
+                        userData.getOwnerName());
+                sendEditMessage(
+                        userData.getChatId(),
+                        text,
+                        userData.getKeyboardFactoryService().getSingleBackProfileKeyboard(userData.getLanguageCode()),
+                        List.of(MessageEntity.builder()
+                                .type("mention")
+                                .offset(text.indexOf(userData.getOwnerName()))
+                                .length(userData.getOwnerName().length())
+                                .build()),
+                        userData.getMessageId());
+                return Boolean.TRUE;
+            };
+
 
     private final Function<InputUserData, Boolean> handleInputText =
             userData -> {
@@ -1077,7 +1099,6 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 return Boolean.TRUE;
             };
 
-    //todo: in future
     private final Function<InputUserData, Boolean> handleTestMessage =
             userData -> {
 
