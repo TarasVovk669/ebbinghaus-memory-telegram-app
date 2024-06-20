@@ -2,10 +2,7 @@ package com.ebbinghaus.memory.app.domain.quiz;
 
 import com.ebbinghaus.memory.app.domain.EMessageCategory;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -39,6 +36,7 @@ public class Quiz {
     @Enumerated(EnumType.STRING)
     private QuizStatus status;
 
+    @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "quiz_id")
     private List<QuizQuestion> questions = new ArrayList<>();

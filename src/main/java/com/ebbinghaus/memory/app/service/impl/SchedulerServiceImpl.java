@@ -89,8 +89,7 @@ public class SchedulerServiceImpl extends QuartzJobBean implements SchedulerServ
                                                     objectMapper))
                                     .replyKeyboard(keyboardFactoryService.getMessageKeyboard(
                                             message.getId(),
-                                            languageCode,
-                                            message.getType().equals(EMessageType.FORWARDED)))
+                                            languageCode))
                                     .file(message.getFile())
                                     .build(),
                             telegramClient);

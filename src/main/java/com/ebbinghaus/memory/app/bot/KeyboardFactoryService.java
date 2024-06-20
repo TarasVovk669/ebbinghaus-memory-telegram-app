@@ -1,5 +1,7 @@
 package com.ebbinghaus.memory.app.bot;
 
+import com.ebbinghaus.memory.app.domain.quiz.QuestionType;
+import com.ebbinghaus.memory.app.domain.quiz.QuizQuestion;
 import com.ebbinghaus.memory.app.service.MessageSourceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -46,8 +48,7 @@ public class KeyboardFactoryService {
                 .build();
     }
 
-    public InlineKeyboardMarkup getMessageKeyboard(
-            Long messageId, String languageCode, boolean isForwardedMessage) {
+    public InlineKeyboardMarkup getMessageKeyboard(Long messageId, String languageCode) {
         var rowInline = new ArrayList<InlineKeyboardButton>();
 
         rowInline.add(
@@ -227,7 +228,7 @@ public class KeyboardFactoryService {
         return new InlineKeyboardMarkup(list);
     }
 
-    public InlineKeyboardMarkup getSingleBackKeyboard(String languageCode) {
+    public InlineKeyboardMarkup getSingleBackProfileKeyboard(String languageCode) {
         return new InlineKeyboardMarkup(List.of(new InlineKeyboardRow(List.of(
                 InlineKeyboardButton.builder()
                         .text(messageSourceService.getMessage("messages.navigation.back", languageCode))
@@ -237,5 +238,87 @@ public class KeyboardFactoryService {
                                                 Map.entry(OPERATION, PROFILE_MAIN_MENU_CALLBACK)
                                         ))))
                         .build()))));
+    }
+
+    public InlineKeyboardMarkup getSingleBackFullMessageKeyboard(String languageCode, Long messageId) {
+        return new InlineKeyboardMarkup(List.of(new InlineKeyboardRow(List.of(
+                InlineKeyboardButton.builder()
+                        .text(messageSourceService.getMessage("messages.navigation.back", languageCode))
+                        .callbackData(doTry(() ->
+                                objectMapper.writeValueAsString(
+                                        Map.ofEntries(
+                                                Map.entry(OPERATION, BACK_FULL_MESSAGE_CALLBACK),
+                                                Map.entry(MESSAGE_ID, messageId)
+                                        ))))
+                        .build()))));
+    }
+
+    public InlineKeyboardMarkup getQuizQuestionKeyboard(QuizQuestion qq, Long messageId, String languageCode) {
+        List<InlineKeyboardRow> list;
+        if (qq.getType().equals(QuestionType.YES_NO)) {
+
+            list = List.of(new InlineKeyboardRow(List.of(
+                            InlineKeyboardButton.builder()
+                                    .text(messageSourceService.getMessage("messages.delete.confirmation.yes", languageCode))
+                                    .callbackData(doTry(() ->
+                                            objectMapper.writeValueAsString(
+                                                    Map.ofEntries(
+                                                            Map.entry(OPERATION, QUIZ_QUESTION_CALLBACK),
+                                                            Map.entry(QUIZ_QUESTION_ID, qq.getId()),
+                                                            Map.entry(QUIZ_ANSWER, "true"),
+                                                            Map.entry(MESSAGE_ID, messageId)))))
+                                    .build(),
+                            InlineKeyboardButton.builder()
+                                    .text(messageSourceService.getMessage("messages.delete.confirmation.no", languageCode))
+                                    .callbackData(doTry(() ->
+                                            objectMapper.writeValueAsString(
+                                                    Map.ofEntries(
+                                                            Map.entry(OPERATION, QUIZ_QUESTION_CALLBACK),
+                                                            Map.entry(QUIZ_QUESTION_ID, qq.getId()),
+                                                            Map.entry(QUIZ_ANSWER, "false"),
+                                                            Map.entry(MESSAGE_ID, messageId)))))
+                                    .build())),
+                    new InlineKeyboardRow(List.of(InlineKeyboardButton.builder()
+                            .text(messageSourceService.getMessage("messages.quiz.close", languageCode))
+                            .callbackData(doTry(() ->
+                                    objectMapper.writeValueAsString(
+                                            Map.ofEntries(
+                                                    Map.entry(OPERATION, BACK_FULL_MESSAGE_CALLBACK),
+                                                    Map.entry(MESSAGE_ID, messageId)
+                                            ))))
+                            .build())));
+        } else {
+            var map = doTry(() -> objectMapper.readValue(qq.getVariants(), MAP_TYPE_REF));
+
+            list = new ArrayList<>(map.entrySet()
+                    .stream()
+                    .map(v -> List.of(
+                            InlineKeyboardButton.builder()
+                                    .text(String.format("%s: %s", v.getKey(), v.getValue()))
+                                    .callbackData(doTry(() ->
+                                            objectMapper.writeValueAsString(
+                                                    Map.ofEntries(
+                                                            Map.entry(OPERATION, QUIZ_QUESTION_CALLBACK),
+                                                            Map.entry(QUIZ_QUESTION_ID, qq.getId()),
+                                                            Map.entry(QUIZ_ANSWER, v.getKey()),
+                                                            Map.entry(MESSAGE_ID, messageId)))))
+                                    .build()))
+                    .map(InlineKeyboardRow::new)
+                    .toList());
+
+            list.add(
+                    new InlineKeyboardRow(List.of(
+                            InlineKeyboardButton.builder()
+                                    .text(messageSourceService.getMessage("messages.quiz.close", languageCode))
+                                    .callbackData(doTry(() ->
+                                            objectMapper.writeValueAsString(
+                                                    Map.ofEntries(
+                                                            Map.entry(OPERATION, BACK_FULL_MESSAGE_CALLBACK),
+                                                            Map.entry(MESSAGE_ID, messageId)
+                                                    ))))
+                                    .build())));
+        }
+
+        return new InlineKeyboardMarkup(list);
     }
 }

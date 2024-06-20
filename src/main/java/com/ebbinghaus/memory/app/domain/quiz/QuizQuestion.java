@@ -39,4 +39,7 @@ public class QuizQuestion {
     private LocalDateTime createdDateTime;
 
     private LocalDateTime finishedDateTime;
+
+    @Column(name = "quiz_id")
+    private Long quizId;
 }

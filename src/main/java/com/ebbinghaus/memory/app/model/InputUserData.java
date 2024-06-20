@@ -19,46 +19,33 @@ import java.util.Map;
 @ToString
 public class InputUserData {
 
-  private Long chatId;
+    private File file;
+    private User user;
+    private Long chatId;
+    private UserState state;
+    private String ownerName;
+    private Integer messageId;
+    private String messageText;
+    private String languageCode;
+    private MessageType messageType;
+    private boolean isForwardedMessage;
+    private Map<String, String> callBackData;
+    private List<MessageEntity> messageEntities;
 
-  private String messageText;
+    private UserService userService;
+    private QuizService quizService;
+    private ObjectMapper objectMapper;
+    private MessageService messageService;
+    private TelegramClient telegramClient;
+    private CategoryService categoryService;
+    private SchedulerService schedulerService;
+    private MessageSourceService messageSourceService;
+    private KeyboardFactoryService keyboardFactoryService;
+    private ChatMessageStateService chatMessageStateService;
 
-  private User user;
 
-  private UserState state;
 
-  private String languageCode;
 
-  private Integer messageId;
 
-  private String ownerName;
-
-  private boolean isForwardedMessage;
-
-  private List<MessageEntity> messageEntities;
-
-  private MessageType messageType;
-
-  private File file;
-
-  private Map<String, String> callBackData;
-
-  private TelegramClient telegramClient;
-
-  private UserService userService;
-
-  private MessageService messageService;
-
-  private CategoryService categoryService;
-
-  private ChatMessageStateService chatMessageStateService;
-
-  private SchedulerService schedulerService;
-
-  private ObjectMapper objectMapper;
-
-  private MessageSourceService messageSourceService;
-
-  private KeyboardFactoryService keyboardFactoryService;
 
 }

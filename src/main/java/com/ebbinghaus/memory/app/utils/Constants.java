@@ -23,6 +23,7 @@ public class Constants {
     public static final String VIEW_SHORT_MESSAGE_CALLBACK = "vsm";
     public static final String EDIT_MESSAGE_CALLBACK = "cm";
     public static final String BACK_MESSAGE_CALLBACK = "bm";
+    public static final String BACK_FULL_MESSAGE_CALLBACK = "bfm";
     public static final String NAVIGATION_DATA_LIST_CALLBACK = "ndl";
     public static final String NAVIGATION_CATEGORY_LIST_CALLBACK = "ncl";
     public static final String DELETE_MESSAGE_CALLBACK = "dm";
@@ -37,6 +38,11 @@ public class Constants {
     public static final String PROFILE_MAIN_MENU_CALLBACK = "pmm";
     public static final String CHANGE_PROFILE_LANGUAGE_CALLBACK = "cpl";
     public static final String CONTACT_INFO_CALLBACK = "cic";
+
+    public static final String QUIZ_QUESTION_CALLBACK = "qqc";
+    public static final String QUIZ_YES_QUESTION_CALLBACK = "qyc";
+    public static final String QUIZ_NO_QUESTION_CALLBACK = "qnc";
+
 
     public static final String UNCATEGORIZED = "#uncategorized";
     public static final String FORWARDED = "#forwarded";
@@ -56,6 +62,8 @@ public class Constants {
 
     public static final String BOLD_STYLE = "bold";
     public static final String OPERATION = "O";
+    public static final String QUIZ_QUESTION_ID = "QQ";
+    public static final String QUIZ_ANSWER = "QA";
     public static final String LANGUAGE_CODE = "LC";
     public static final String MESSAGE_ID = "M";
     public static final String CATEGORY_ID = "C";
