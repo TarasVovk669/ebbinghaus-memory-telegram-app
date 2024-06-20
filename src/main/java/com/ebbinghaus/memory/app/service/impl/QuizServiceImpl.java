@@ -86,7 +86,6 @@ public class QuizServiceImpl implements QuizService {
                                     //3)correct question
                                     var result = quizQuestionRepository.findQuizStatisticsByQuizId(quiz.getId());
 
-
                                     System.out.println(result.getTotalQuestions());
                                     System.out.println(result.getAnsweredQuestions());
                                     System.out.println(result.getCorrectQuestions());
