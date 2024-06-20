@@ -256,8 +256,8 @@ public class KeyboardFactoryService {
     public InlineKeyboardMarkup getQuizQuestionKeyboard(QuizQuestion qq, Long messageId, String languageCode) {
         List<InlineKeyboardRow> list;
         if (qq.getType().equals(QuestionType.YES_NO)) {
-
-            list = List.of(new InlineKeyboardRow(List.of(
+            list = List.of(
+                    new InlineKeyboardRow(List.of(
                             InlineKeyboardButton.builder()
                                     .text(messageSourceService.getMessage("messages.delete.confirmation.yes", languageCode))
                                     .callbackData(doTry(() ->
