@@ -247,15 +247,13 @@ public class QuizServiceImpl implements QuizService {
                 .ifPresentOrElse(qq -> {
                             var text = String.format(
                                     messageSourceService.getMessage(
-                                            MISSING.equals(qq.getType())
-                                                    ? "messages.quiz.question.template_missing"
-                                                    : "messages.quiz.question.template",
+                                            "messages.quiz.question.template",
                                             userData.getLanguageCode()),
                                     statistic.getAnsweredQuestions() + 1,
                                     statistic.getTotalQuestions(),
                                     statistic.getAnsweredQuestions(),
                                     statistic.getCorrectQuestions(),
-                                    qq.getText());
+                                    qq.getText().replaceAll("_", "\\\\_"));
 
                             doTry(() -> telegramClient.execute(
                                     EditMessageText.builder()
