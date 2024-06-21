@@ -107,9 +107,9 @@ public class Constants {
             Questions should be difficult, relevant, and varied. Analyze the input text for main ideas and themes. If insufficient information, generate some questions independently. If vocabulary-based, include MISSING questions with context-based options.
                         
             Use the language specified in language_code.
-            Translate questions based on input_text language. For example, if message use russian -> translate questions using russian language. if message use 2 or more languages -> use theirs in questions 
+            Translate questions based on {input_text} language AND on {language_code} input parameter!
             If the input text is not understandable, include "error": "BAD_QUESTION_CANT_UNDERSTAND" in the response. If the text is too short, include "error": "TOO_SHORT".
-            Response must contains ONLY "questions" OR "error". 
+            Response must contains ONLY "questions" OR "error"!
                         
             For answers:
                         
@@ -158,7 +158,7 @@ public class Constants {
                 },
                 {
                   "type": "MISSING",
-                  "text": "____ is the quality of being confident and not afraid to say what you want or believe.",
+                  "text": "______ is the quality of being confident and not afraid to say what you want or believe.",
                   "variants": {
                     "A": "Bravery",
                     "B": "Assertiveness",

@@ -283,7 +283,7 @@ public class QuizServiceImpl implements QuizService {
                                                     statistic.getAnsweredQuestions(),
                                                     statistic.getCorrectQuestions())
                                             )
-                                            .replyMarkup(factoryService.getSingleBackFullMessageKeyboard(userData.getLanguageCode(), messageId))
+                                            .replyMarkup(factoryService.getSingleBackFullMessageKeyboard(userData.getLanguageCode(), messageId, "messages.quiz.finish"))
                                             .build()));
                         });
     }

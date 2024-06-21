@@ -241,9 +241,13 @@ public class KeyboardFactoryService {
     }
 
     public InlineKeyboardMarkup getSingleBackFullMessageKeyboard(String languageCode, Long messageId) {
+        return getSingleBackFullMessageKeyboard(languageCode, messageId, "messages.navigation.back");
+    }
+
+    public InlineKeyboardMarkup getSingleBackFullMessageKeyboard(String languageCode, Long messageId, String messageText) {
         return new InlineKeyboardMarkup(List.of(new InlineKeyboardRow(List.of(
                 InlineKeyboardButton.builder()
-                        .text(messageSourceService.getMessage("messages.navigation.back", languageCode))
+                        .text(messageSourceService.getMessage(messageText, languageCode))
                         .callbackData(doTry(() ->
                                 objectMapper.writeValueAsString(
                                         Map.ofEntries(
