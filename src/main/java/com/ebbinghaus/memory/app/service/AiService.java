@@ -1,7 +1,7 @@
 package com.ebbinghaus.memory.app.service;
 
+import com.ebbinghaus.memory.app.model.AiQuestionTuple;
 
 public interface AiService {
-
-  String sendRequest();
+    AiQuestionTuple sendRequest(String text, String languageCode);
 }

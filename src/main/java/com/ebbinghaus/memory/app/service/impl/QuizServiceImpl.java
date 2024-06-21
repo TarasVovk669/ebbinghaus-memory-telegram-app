@@ -1,15 +1,16 @@
 package com.ebbinghaus.memory.app.service.impl;
 
 import com.ebbinghaus.memory.app.bot.KeyboardFactoryService;
-import com.ebbinghaus.memory.app.domain.quiz.QuestionType;
+import com.ebbinghaus.memory.app.domain.quiz.QuestionStatus;
 import com.ebbinghaus.memory.app.domain.quiz.Quiz;
-import com.ebbinghaus.memory.app.domain.quiz.QuizQuestion;
 import com.ebbinghaus.memory.app.domain.quiz.QuizStatus;
+import com.ebbinghaus.memory.app.model.AiQuestionTuple;
 import com.ebbinghaus.memory.app.model.InputUserData;
 import com.ebbinghaus.memory.app.model.QuizTuple;
 import com.ebbinghaus.memory.app.repository.QuizQuestionRepository;
 import com.ebbinghaus.memory.app.repository.QuizRepository;
 import com.ebbinghaus.memory.app.service.AiService;
+import com.ebbinghaus.memory.app.service.MessageService;
 import com.ebbinghaus.memory.app.service.MessageSourceService;
 import com.ebbinghaus.memory.app.service.QuizService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,13 +25,12 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
+import static com.ebbinghaus.memory.app.domain.quiz.QuestionType.MISSING;
+import static com.ebbinghaus.memory.app.domain.quiz.QuestionType.YES_NO;
 import static com.ebbinghaus.memory.app.model.QuizManageStatus.*;
-import static com.ebbinghaus.memory.app.utils.Constants.MESSAGE_ID;
+import static com.ebbinghaus.memory.app.utils.Constants.*;
 import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
 import static java.time.ZoneOffset.UTC;
 
@@ -44,6 +44,7 @@ public class QuizServiceImpl implements QuizService {
     private final AiService aiService;
     private final TelegramClient telegramClient;
     private final QuizRepository quizRepository;
+    private final MessageService messageService;
     private final KeyboardFactoryService factoryService;
     private final MessageSourceService messageSourceService;
     private final QuizQuestionRepository quizQuestionRepository;
@@ -55,11 +56,14 @@ public class QuizServiceImpl implements QuizService {
     public void process(InputUserData userData) {
         log.info("Process quiz for user with id: {}", userData.getUser().getId());
 
-
-        Long messageId = Long.valueOf(userData.getCallBackData().get(MESSAGE_ID));
-        var quizTuple = manageUserQuiz(userData.getUser().getId(), messageId);
+        var messageId = Long.valueOf(userData.getCallBackData().get(MESSAGE_ID));
+        var quizTuple = manageUserQuiz(userData.getUser().getId(), messageId, userData.getLanguageCode());
 
         switch (quizTuple.status()) {
+            case BAD_QUESTION_CANT_UNDERSTAND:
+            case RETRIES_LIMIT:
+            case DEFAULT:
+            case TOO_SHORT:
             case MAX_PER_MESSAGE:
             case MAX_PER_DAY_LIMIT_STATUS: {
                 doTry(() -> telegramClient.execute(
@@ -78,33 +82,7 @@ public class QuizServiceImpl implements QuizService {
             case SUCCESS: {
                 var quiz = quizTuple.quiz();
                 log.info("Get last question from quiz by id: {}", quiz.getId());
-                quizQuestionRepository.findFirstByQuizIdAndStatusIsNullOrderById(quiz.getId())
-                        .ifPresentOrElse(qq -> {
-                                    //todo: get select from qq to get some add info
-                                    //1)total question
-                                    //2)answered question
-                                    //3)correct question
-                                    var result = quizQuestionRepository.findQuizStatisticsByQuizId(quiz.getId());
-
-                                    System.out.println(result.getTotalQuestions());
-                                    System.out.println(result.getAnsweredQuestions());
-                                    System.out.println(result.getCorrectQuestions());
-
-                                    doTry(() -> telegramClient.execute(
-                                            EditMessageText.builder()
-                                                    .chatId(userData.getChatId())
-                                                    .messageId(userData.getMessageId())
-                                                    .text(qq.getText())
-                                                    .replyMarkup(factoryService.getQuizQuestionKeyboard(qq, quiz.getMessageId(), userData.getLanguageCode())) // add button
-                                                    .build()));
-                                },
-                                () -> doTry(() -> telegramClient.execute(
-                                        EditMessageText.builder()
-                                                .chatId(userData.getChatId())
-                                                .messageId(userData.getMessageId())
-                                                .text(messageSourceService.getMessage("quiz.error.finished_quiz", userData.getLanguageCode()))
-                                                .replyMarkup(factoryService.getSingleBackFullMessageKeyboard(userData.getLanguageCode(), messageId))
-                                                .build())));
+                manageQuizQuestion(userData, quiz.getId(), quiz.getMessageId());
                 break;
             }
             default:
@@ -112,15 +90,101 @@ public class QuizServiceImpl implements QuizService {
         }
     }
 
-    //one quiz per 24 hours on  concrete message,
-    //2 quizzes per 24 hours
-    public QuizTuple manageUserQuiz(Long userId, Long messageId) {
-        return Optional.ofNullable(quizRepository.getFirstByOwnerIdAndMessageIdOrderByIdDesc(userId, messageId))
-                .map(lastQuiz -> handleExistingQuiz(lastQuiz, messageId, userId))
-                .orElseGet(() -> handleNewQuiz(userId, messageId));
+    @Override
+    public void answeredQuestion(InputUserData userData) {
+        var messageId = Long.valueOf(userData.getCallBackData().get(MESSAGE_ID));
+        var quizQuestionId = Long.valueOf(userData.getCallBackData().get(QUIZ_QUESTION_ID));
+        var quizAnswer = userData.getCallBackData().get(QUIZ_ANSWER);
+
+        log.info("Process question with id: {} and answer: {} for message_id: {}", quizQuestionId, quizAnswer, messageId);
+
+        quizQuestionRepository.findById(quizQuestionId)
+                .ifPresentOrElse(qq -> {
+                    var isCorrect = qq.getCorrectAnswer().equalsIgnoreCase(quizAnswer);
+
+                    if (null == qq.getStatus()) {
+                        quizQuestionRepository.save(
+                                qq.setStatus(isCorrect
+                                                ? QuestionStatus.CORRECT
+                                                : QuestionStatus.FAILED)
+                                        .setUserAnswer(quizAnswer)
+                                        .setFinishedDateTime(LocalDateTime.now(UTC)));
+                        if (isCorrect) {
+                            getNextQuestion(userData, qq.getQuizId());
+                        } else {
+                            String correctAnswer;
+                            if (qq.getType().equals(YES_NO)) {
+                                correctAnswer = messageSourceService.getMessage(qq.getCorrectAnswer().equalsIgnoreCase("true")
+                                                ? "messages.delete.confirmation.yes"
+                                                : "messages.delete.confirmation.no",
+                                        userData.getLanguageCode());
+                            } else {
+                                var map = doTry(() -> objectMapper.readValue(qq.getVariants(), MAP_TYPE_REF));
+                                if (map.containsKey(qq.getCorrectAnswer())) {
+                                    correctAnswer = String.format("%s: %s", qq.getCorrectAnswer(), map.get(qq.getCorrectAnswer()));
+                                } else {
+                                    correctAnswer = qq.getCorrectAnswer();
+                                }
+                            }
+
+
+                            doTry(() -> telegramClient.execute(
+                                    EditMessageText.builder()
+                                            .chatId(userData.getChatId())
+                                            .messageId(userData.getMessageId())
+                                            .text(String.format(messageSourceService.getMessage(
+                                                    "messages.quiz.incorrect_answer",
+                                                    userData.getLanguageCode()), correctAnswer))
+                                            .replyMarkup(factoryService.getIncorrectQuizKeyboard(
+                                                    userData.getLanguageCode(),
+                                                    messageId, qq.getQuizId()))
+                                            .parseMode("markdown")
+                                            .build()));
+                        }
+                    } else {
+                        doTry(() -> telegramClient.execute(
+                                EditMessageText.builder()
+                                        .chatId(userData.getChatId())
+                                        .messageId(userData.getMessageId())
+                                        .text(messageSourceService.getMessage("quiz.error.already_answered",
+                                                userData.getLanguageCode()))
+                                        .replyMarkup(factoryService.getSingleBackFullMessageKeyboard(
+                                                userData.getLanguageCode(),
+                                                messageId))
+                                        .parseMode("markdown")
+                                        .build()));
+                    }
+                }, () -> doTry(() -> telegramClient.execute(
+                        EditMessageText.builder()
+                                .chatId(userData.getChatId())
+                                .messageId(userData.getMessageId())
+                                .text(messageSourceService.getMessage(
+                                        "quiz.error.not_found",
+                                        userData.getLanguageCode()))
+                                .replyMarkup(factoryService.getSingleBackFullMessageKeyboard(
+                                        userData.getLanguageCode(),
+                                        messageId))
+                                .build())));
+
     }
 
-    private QuizTuple handleExistingQuiz(Quiz lastQuiz, Long messageId, Long userId) {
+    @Override
+    public void getNextQuestion(InputUserData userData, Long quizId) {
+        var messageId = Long.valueOf(userData.getCallBackData().get(MESSAGE_ID));
+        var selectedQuizId = null != quizId ? quizId : Long.valueOf(userData.getCallBackData().get(QUIZ_ID));
+
+        manageQuizQuestion(userData, selectedQuizId, messageId);
+    }
+
+    //one quiz per 24 hours on  concrete message,
+    //2 quizzes per 24 hours
+    public QuizTuple manageUserQuiz(Long userId, Long messageId, String languageCode) {
+        return Optional.ofNullable(quizRepository.getFirstByOwnerIdAndMessageIdOrderByIdDesc(userId, messageId))
+                .map(lastQuiz -> handleExistingQuiz(lastQuiz, messageId, userId, languageCode))
+                .orElseGet(() -> handleNewQuiz(userId, messageId, languageCode));
+    }
+
+    private QuizTuple handleExistingQuiz(Quiz lastQuiz, Long messageId, Long userId, String languageCode) {
         switch (lastQuiz.getStatus()) {
             case CREATED:
             case IN_PROGRESS:
@@ -130,66 +194,46 @@ public class QuizServiceImpl implements QuizService {
                 if (Duration.between(lastQuiz.getFinishedDateTime().toInstant(UTC), Instant.now()).toHours() < 24) {
                     return new QuizTuple(MAX_PER_MESSAGE, null);
                 } else {
-                    return createQuiz(userId, messageId);
+                    return createQuiz(userId, messageId, languageCode);
                 }
             default:
                 throw new IllegalStateException("Unexpected quiz status: " + lastQuiz.getStatus());
         }
     }
 
-    private QuizTuple handleNewQuiz(Long userId, Long messageId) {
-        LocalDateTime cutoffDateTime = LocalDateTime.now().minus(24, ChronoUnit.HOURS);
+    private QuizTuple handleNewQuiz(Long userId, Long messageId, String languageCode) {
+        LocalDateTime cutoffDateTime = LocalDateTime.now().minusHours(24);
         var lastUserQuizzes = quizRepository.findAllRecentQuizzesByUserId(userId, cutoffDateTime);
 
         if (lastUserQuizzes.size() >= DEFAULT_QUIZ_PAGE_SIZE) {
             return new QuizTuple(MAX_PER_DAY_LIMIT_STATUS, null);
         }
 
-        return createQuiz(userId, messageId);
+        return createQuiz(userId, messageId, languageCode);
     }
 
-    private QuizTuple createQuiz(Long userId, Long messageId) {
-        var createdQuiz = quizRepository.save(getQuizFromAI(userId, messageId));
-        log.info("Created new quiz: {} for message_id: {}", createdQuiz, messageId);
-        return new QuizTuple(SUCCESS, createdQuiz);
+    private QuizTuple createQuiz(Long userId, Long messageId, String languageCode) {
+        var aiTuple = getQuizFromAI(messageId, languageCode);
+
+        if (SUCCESS.equals(aiTuple.status())) {
+            var createdQuiz = quizRepository.save(Quiz.builder()
+                    .status(QuizStatus.CREATED)
+                    .ownerId(userId)
+                    .messageId(messageId)
+                    .createdDateTime(LocalDateTime.now(UTC))
+                    .questions(aiTuple.questions())
+                    .build());
+            log.info("Created new quiz: {} for message_id: {}", createdQuiz, messageId);
+            return new QuizTuple(SUCCESS, createdQuiz);
+        } else {
+            return new QuizTuple(aiTuple.status(), null);
+        }
     }
 
 
-    //todo: get quiz from ai and validate by schema
-    private Quiz getQuizFromAI(Long userId, Long messageId) {
-        //aiService.getNewQuiz();
-        var mockQ = Quiz.builder()
-                .status(QuizStatus.CREATED)
-                .ownerId(userId)
-                .messageId(messageId)
-                .createdDateTime(LocalDateTime.now(UTC))
-                .questions(List.of(
-                        QuizQuestion.builder()
-                                .type(QuestionType.SELECT)
-                                .text("SELECT FROMMMMMMMMMMDMDMDDMMDMDMD")
-                                .correctAnswer("true")
-                                .createdDateTime(LocalDateTime.now(UTC))
-                                .variants(doTry(() -> objectMapper.writeValueAsString(Map.ofEntries(
-                                        Map.entry("A", "fiirst val"),
-                                        Map.entry("B", "SECOND val"),
-                                        Map.entry("DD", "LAST val"),
-                                        Map.entry("D", "LAST val")
-                                ))))
-                                .build(),
-                        QuizQuestion.builder()
-                                .type(QuestionType.MISSING)
-                                .text("MISISNGGGGNGNGNGNGNGGNGNGNGNGN")
-                                .correctAnswer("true")
-                                .createdDateTime(LocalDateTime.now(UTC))
-                                .variants(doTry(() -> objectMapper.writeValueAsString(Map.ofEntries(
-                                        Map.entry("A", "fiirst val"),
-                                        Map.entry("B", "SECOND val"),
-                                        Map.entry("C", "THIRT val"),
-                                        Map.entry("D", "LAST val")
-                                ))))
-                                .build()))
-                .build();
-        return mockQ;
+    private AiQuestionTuple getQuizFromAI(Long messageId, String languageCode) {
+        var message = messageService.getMessage(messageId, false);
+        return aiService.sendRequest(message.getText(), languageCode);
     }
 
     @Override
@@ -197,5 +241,51 @@ public class QuizServiceImpl implements QuizService {
         return null;
     }
 
+    private void manageQuizQuestion(InputUserData userData, Long quizId, Long messageId) {
+        var statistic = quizQuestionRepository.findQuizStatisticsByQuizId(quizId);
+        quizQuestionRepository.findFirstByQuizIdAndStatusIsNullOrderById(quizId)
+                .ifPresentOrElse(qq -> {
+                            var text = String.format(
+                                    messageSourceService.getMessage(
+                                            MISSING.equals(qq.getType())
+                                                    ? "messages.quiz.question.template_missing"
+                                                    : "messages.quiz.question.template",
+                                            userData.getLanguageCode()),
+                                    statistic.getAnsweredQuestions() + 1,
+                                    statistic.getTotalQuestions(),
+                                    statistic.getAnsweredQuestions(),
+                                    statistic.getCorrectQuestions(),
+                                    qq.getText());
+
+                            doTry(() -> telegramClient.execute(
+                                    EditMessageText.builder()
+                                            .chatId(userData.getChatId())
+                                            .messageId(userData.getMessageId())
+                                            .text(text)
+                                            .parseMode("markdown")
+                                            .replyMarkup(factoryService.getQuizQuestionKeyboard(qq, messageId, userData.getLanguageCode())) // add button
+                                            .build()));
+                        },
+                        () -> {
+                            quizRepository.findById(quizId)
+                                    .ifPresent(quiz -> quizRepository.save(quiz
+                                            .setStatus(QuizStatus.FINISHED)
+                                            .setFinishedDateTime(LocalDateTime.now(UTC))));
+
+                            doTry(() -> telegramClient.execute(
+                                    EditMessageText.builder()
+                                            .chatId(userData.getChatId())
+                                            .messageId(userData.getMessageId())
+                                            .text(String.format(messageSourceService.getMessage(
+                                                            "quiz.error.finished_quiz",
+                                                            userData.getLanguageCode()),
+                                                    statistic.getTotalQuestions(),
+                                                    statistic.getAnsweredQuestions(),
+                                                    statistic.getCorrectQuestions())
+                                            )
+                                            .replyMarkup(factoryService.getSingleBackFullMessageKeyboard(userData.getLanguageCode(), messageId))
+                                            .build()));
+                        });
+    }
 
 }

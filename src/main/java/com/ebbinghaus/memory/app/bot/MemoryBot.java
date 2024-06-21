@@ -124,6 +124,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
         functionCallbackDataMap.put(CONTACT_INFO_CALLBACK, handleContactInfo);
 
         functionCallbackDataMap.put(QUIZ_QUESTION_CALLBACK, handleQuizQuestion);
+        functionCallbackDataMap.put(QUIZ_NEXT_QUESTION_CALLBACK, handleQuizNextQuestion);
 
         functionUserStateMap.put(WAIT_TEXT, handleInputText);
         functionUserStateMap.put(WAIT_FORWARDED_MESSAGE, handleInputText);
@@ -451,22 +452,17 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 return Boolean.TRUE;
             };
 
-    //todo: change refactor
     private final Function<InputUserData, Boolean> handleQuizQuestion =
             userData -> {
-                var text = String.format(userData.getMessageSourceService()
-                                .getMessage("messages.profile.contact-info.text", userData.getLanguageCode()),
-                        userData.getOwnerName());
-                sendEditMessage(
-                        userData.getChatId(),
-                        text,
-                        userData.getKeyboardFactoryService().getSingleBackProfileKeyboard(userData.getLanguageCode()),
-                        List.of(MessageEntity.builder()
-                                .type("mention")
-                                .offset(text.indexOf(userData.getOwnerName()))
-                                .length(userData.getOwnerName().length())
-                                .build()),
-                        userData.getMessageId());
+                userData.getQuizService().answeredQuestion(userData);
+
+                return Boolean.TRUE;
+            };
+
+    private final Function<InputUserData, Boolean> handleQuizNextQuestion =
+            userData -> {
+                userData.getQuizService().getNextQuestion(userData, null);
+
                 return Boolean.TRUE;
             };
 

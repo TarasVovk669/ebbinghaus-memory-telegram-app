@@ -321,4 +321,30 @@ public class KeyboardFactoryService {
 
         return new InlineKeyboardMarkup(list);
     }
+
+    public InlineKeyboardMarkup getIncorrectQuizKeyboard(String languageCode, Long messageId, Long quizId) {
+
+        var list = List.of(
+                new InlineKeyboardRow(List.of(InlineKeyboardButton.builder()
+                        .text(messageSourceService.getMessage("messages.quiz.next", languageCode))
+                        .callbackData(doTry(() ->
+                                objectMapper.writeValueAsString(
+                                        Map.ofEntries(
+                                                Map.entry(OPERATION, QUIZ_NEXT_QUESTION_CALLBACK),
+                                                Map.entry(MESSAGE_ID, messageId),
+                                                Map.entry(QUIZ_ID, quizId)
+                                        ))))
+                        .build())),
+                new InlineKeyboardRow(List.of(InlineKeyboardButton.builder()
+                        .text(messageSourceService.getMessage("messages.quiz.close", languageCode))
+                        .callbackData(doTry(() ->
+                                objectMapper.writeValueAsString(
+                                        Map.ofEntries(
+                                                Map.entry(OPERATION, BACK_FULL_MESSAGE_CALLBACK),
+                                                Map.entry(MESSAGE_ID, messageId)
+                                        ))))
+                        .build())));
+
+        return new InlineKeyboardMarkup(list);
+    }
 }

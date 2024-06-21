@@ -2,7 +2,6 @@ package com.ebbinghaus.memory.app.service.impl;
 
 import com.ebbinghaus.memory.app.bot.KeyboardFactoryService;
 import com.ebbinghaus.memory.app.domain.EMessage;
-import com.ebbinghaus.memory.app.domain.EMessageType;
 import com.ebbinghaus.memory.app.domain.ScheduleMessageErrorQueue;
 import com.ebbinghaus.memory.app.exception.TelegramCallException;
 import com.ebbinghaus.memory.app.model.InputUserData;

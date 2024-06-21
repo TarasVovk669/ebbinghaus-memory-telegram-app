@@ -5,6 +5,14 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     url: jdbc:postgresql://${DB_HOST}/${DB_NAME}?currentSchema=memorybot
+  ai:
+    openai:
+      api-key: ${AI_API_KEY}
+      chat:
+        options:
+          #model: gpt-4o
+          model: gpt-3.5-turbo
+          response-format: json_object
   flyway:
     schemas:
       - memorybot
