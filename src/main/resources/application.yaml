@@ -10,8 +10,7 @@ spring:
       api-key: ${AI_API_KEY}
       chat:
         options:
-          model: gpt-4o
-          #model: gpt-3.5-turbo
+          model: ${AI_MODEL}
           response-format: json_object
   flyway:
     schemas:
