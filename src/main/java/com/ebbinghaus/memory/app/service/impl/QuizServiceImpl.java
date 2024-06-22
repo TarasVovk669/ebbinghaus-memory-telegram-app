@@ -250,9 +250,6 @@ public class QuizServiceImpl implements QuizService {
                                             "messages.quiz.question.template",
                                             userData.getLanguageCode()),
                                     statistic.getAnsweredQuestions() + 1,
-                                    statistic.getTotalQuestions(),
-                                    statistic.getAnsweredQuestions(),
-                                    statistic.getCorrectQuestions(),
                                     qq.getText().replaceAll("_", "\\\\_"));
 
                             doTry(() -> telegramClient.execute(

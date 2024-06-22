@@ -17,6 +17,10 @@ public class Constants {
     public static final long ZERO_COUNT = 0L;
     public static final int TRY_COUNT = 1;
     public static final Long DEFAULT_TIME_EXECUTION = 30L;
+    public static final long MINUTES_IN_HOUR = 60;
+    public static final long MINUTES_IN_DAY = 1440; // 24 * 60
+    public static final long MINUTES_IN_YEAR = 525960; // 365.25 * 24 * 60
+    public static final long MINUTES_IN_MONTH = 43830; // 30.44 * 24 * 60
 
     public static final String EDIT_CONCRETE_MESSAGE_CALLBACK = "ccm";
     public static final String VIEW_MESSAGE_CALLBACK = "vm";

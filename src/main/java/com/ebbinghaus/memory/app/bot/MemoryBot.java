@@ -1346,7 +1346,8 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
             result
                     .append("\n\n")
                     .append(valueSuffix)
-                    .append(formatDuration(LocalDateTime.now(UTC),
+                    .append(formatDuration(
+                            LocalDateTime.now(UTC),
                             message.getNextExecutionDateTime(),
                             languageCode,
                             messageSourceService

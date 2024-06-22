@@ -7,8 +7,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
 
-import static com.ebbinghaus.memory.app.utils.Constants.DEFAULT_TIME_EXECUTION;
-import static com.ebbinghaus.memory.app.utils.Constants.INTERVAL_MAP;
+import static com.ebbinghaus.memory.app.utils.Constants.*;
+import static java.time.ZoneOffset.UTC;
 
 public class DateUtils {
 
@@ -35,25 +35,32 @@ public class DateUtils {
             end = temp;
         }
 
-        Period period = Period.between(start.toLocalDate(), end.toLocalDate());
-        Duration duration = Duration.between(start.toLocalTime(), end.toLocalTime());
+        Duration duration = Duration.between(start, end);
+        var totalMinutes = duration.toMinutes();
 
-        if (duration.isNegative()) {
-            period = period.minusDays(1);
-            duration = duration.plusDays(1);
-        }
+        var years = totalMinutes / MINUTES_IN_YEAR;
+        totalMinutes %= MINUTES_IN_YEAR;
+
+        var months = totalMinutes / MINUTES_IN_MONTH;
+        totalMinutes %= MINUTES_IN_MONTH;
+
+        var days = totalMinutes / MINUTES_IN_DAY;
+        totalMinutes %= MINUTES_IN_DAY;
+
+        var hours = totalMinutes / MINUTES_IN_HOUR;
+        var minutes = totalMinutes % MINUTES_IN_HOUR;
 
         StringBuilder result = new StringBuilder();
-        if (period.getYears() != 0)
-            result.append(period.getYears()).append(messageSourceService.getMessage("messages.execution-time.years", languageCode));
-        if (period.getMonths() != 0)
-            result.append(period.getMonths()).append(messageSourceService.getMessage("messages.execution-time.months", languageCode));
-        if (period.getDays() != 0)
-            result.append(period.getDays()).append(messageSourceService.getMessage("messages.execution-time.days", languageCode));
-        if (duration.toHours() != 0)
-            result.append(duration.toHours() % 24).append(messageSourceService.getMessage("messages.execution-time.hours", languageCode));
-        if (duration.toMinutes() % 60 != 0)
-            result.append(duration.toMinutes() % 60).append(messageSourceService.getMessage("messages.execution-time.minutes", languageCode));
+        if (years != 0)
+            result.append(years).append(messageSourceService.getMessage("messages.execution-time.years", languageCode));
+        if (months != 0)
+            result.append(months).append(messageSourceService.getMessage("messages.execution-time.months", languageCode));
+        if (days != 0)
+            result.append(days).append(messageSourceService.getMessage("messages.execution-time.days", languageCode));
+        if (hours != 0)
+            result.append(hours).append(messageSourceService.getMessage("messages.execution-time.hours", languageCode));
+        if (minutes % 60 != 0)
+            result.append(minutes).append(messageSourceService.getMessage("messages.execution-time.minutes", languageCode));
         if (result.isEmpty())
             result.append(messageSourceService.getMessage("messages.execution-time.minute", languageCode));
 
