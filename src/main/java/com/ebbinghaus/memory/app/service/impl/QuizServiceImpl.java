@@ -6,6 +6,7 @@ import com.ebbinghaus.memory.app.domain.quiz.Quiz;
 import com.ebbinghaus.memory.app.domain.quiz.QuizStatus;
 import com.ebbinghaus.memory.app.model.AiQuestionTuple;
 import com.ebbinghaus.memory.app.model.InputUserData;
+import com.ebbinghaus.memory.app.model.QuizCount;
 import com.ebbinghaus.memory.app.model.QuizTuple;
 import com.ebbinghaus.memory.app.repository.QuizQuestionRepository;
 import com.ebbinghaus.memory.app.repository.QuizRepository;
@@ -27,7 +28,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static com.ebbinghaus.memory.app.domain.quiz.QuestionType.MISSING;
 import static com.ebbinghaus.memory.app.domain.quiz.QuestionType.YES_NO;
 import static com.ebbinghaus.memory.app.model.QuizManageStatus.*;
 import static com.ebbinghaus.memory.app.utils.Constants.*;
@@ -176,9 +176,24 @@ public class QuizServiceImpl implements QuizService {
         manageQuizQuestion(userData, selectedQuizId, messageId);
     }
 
+    @Override
+    public QuizCount countQuizzes(Long id) {
+        log.info("Get count quizzes for user_id: {}", id);
+
+        var now = LocalDateTime.now(UTC);
+        var cutoffDateTime = now.minusHours(24);
+        var quizCount = quizRepository.getQuizCount(id, cutoffDateTime, now);
+
+        var availableQuizCount = DEFAULT_QUIZ_PAGE_SIZE - quizCount.getAvailableQuizCount();
+        return new QuizCount(
+                availableQuizCount,
+                quizCount.getTotalFinishedQuizCount(),
+                DEFAULT_QUIZ_PAGE_SIZE);
+    }
+
     //one quiz per 24 hours on  concrete message,
     //2 quizzes per 24 hours
-    public QuizTuple manageUserQuiz(Long userId, Long messageId, String languageCode) {
+    private QuizTuple manageUserQuiz(Long userId, Long messageId, String languageCode) {
         return Optional.ofNullable(quizRepository.getFirstByOwnerIdAndMessageIdOrderByIdDesc(userId, messageId))
                 .map(lastQuiz -> handleExistingQuiz(lastQuiz, messageId, userId, languageCode))
                 .orElseGet(() -> handleNewQuiz(userId, messageId, languageCode));
@@ -202,7 +217,7 @@ public class QuizServiceImpl implements QuizService {
     }
 
     private QuizTuple handleNewQuiz(Long userId, Long messageId, String languageCode) {
-        LocalDateTime cutoffDateTime = LocalDateTime.now().minusHours(24);
+        LocalDateTime cutoffDateTime = LocalDateTime.now(UTC).minusHours(24);
         var lastUserQuizzes = quizRepository.findAllRecentQuizzesByUserId(userId, cutoffDateTime);
 
         if (lastUserQuizzes.size() >= DEFAULT_QUIZ_PAGE_SIZE) {
@@ -234,11 +249,6 @@ public class QuizServiceImpl implements QuizService {
     private AiQuestionTuple getQuizFromAI(Long messageId, String languageCode) {
         var message = messageService.getMessage(messageId, false);
         return aiService.sendRequest(message.getText(), languageCode);
-    }
-
-    @Override
-    public Quiz createQuiz() {
-        return null;
     }
 
     private void manageQuizQuestion(InputUserData userData, Long quizId, Long messageId) {

@@ -371,6 +371,8 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 deleteMessage(userData.getChatId(), userData.getMessageId());
 
                 var messageAndCategoryCount = userData.getMessageService().getMessageAndCategoryCount(userData.getUser().getId());
+                var quizzesCount = userData.getQuizService().countQuizzes(userData.getUser().getId());
+
                 var message = sendMessage(
                         userData.getChatId(),
                         String.format(userData.getMessageSourceService().getMessage(
@@ -378,7 +380,10 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                         userData.getLanguageCode()),
                                 userData.getUser().getFirstName(),
                                 messageAndCategoryCount.getMessageCount(),
-                                messageAndCategoryCount.getCategoryCount()),
+                                messageAndCategoryCount.getCategoryCount(),
+                                quizzesCount.availableQuizCount(),
+                                quizzesCount.totalCountPerDay(),
+                                quizzesCount.totalFinishedQuizCount()),
                         userData.getKeyboardFactoryService().getProfileKeyboard(userData.getLanguageCode()));
 
                 userData
@@ -395,6 +400,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
     private final Function<InputUserData, Boolean> handleProfileMainMenuBack =
             userData -> {
                 var messageAndCategoryCount = userData.getMessageService().getMessageAndCategoryCount(userData.getUser().getId());
+                var quizzesCount = userData.getQuizService().countQuizzes(userData.getUser().getId());
 
                 sendEditMessage(
                         userData.getChatId(),
@@ -403,7 +409,10 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                                         userData.getLanguageCode()),
                                 userData.getUser().getFirstName(),
                                 messageAndCategoryCount.getMessageCount(),
-                                messageAndCategoryCount.getCategoryCount()),
+                                messageAndCategoryCount.getCategoryCount(),
+                                quizzesCount.availableQuizCount(),
+                                quizzesCount.totalCountPerDay(),
+                                quizzesCount.totalFinishedQuizCount()),
                         userData.getKeyboardFactoryService().getProfileKeyboard(userData.getLanguageCode()),
                         null,
                         userData.getMessageId());
@@ -417,20 +426,13 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
                 var newLanguageCode = userData.getCallBackData().get(LANGUAGE_CODE);
                 userData.getUserService().updateLanguageCode(userData.getUser().getId(), newLanguageCode);
 
-                var message = sendMessage(
+                sendMessage(
                         userData.getChatId(),
                         String.format(userData.getMessageSourceService().getMessage(
                                 "messages.profile.success-change",
                                 newLanguageCode), userData.getUser().getFirstName()),
                         userData.getKeyboardFactoryService().getMainMenuKeyboard(newLanguageCode));
 
-                userData
-                        .getChatMessageStateService()
-                        .addMessage(
-                                userData.getUser().getId(),
-                                userData.getChatId(),
-                                PROFILE,
-                                List.of(message.getMessageId()));
                 return Boolean.TRUE;
             };
 

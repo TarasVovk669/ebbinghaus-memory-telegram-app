@@ -5,10 +5,8 @@ import com.ebbinghaus.memory.app.service.MessageSourceService;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.Period;
 
 import static com.ebbinghaus.memory.app.utils.Constants.*;
-import static java.time.ZoneOffset.UTC;
 
 public class DateUtils {
 

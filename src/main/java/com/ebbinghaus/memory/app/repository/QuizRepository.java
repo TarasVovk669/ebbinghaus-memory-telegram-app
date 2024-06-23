@@ -1,8 +1,7 @@
 package com.ebbinghaus.memory.app.repository;
 
 import com.ebbinghaus.memory.app.domain.quiz.Quiz;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.ebbinghaus.memory.app.model.proj.QuizCountProj;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,8 +15,20 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
 
     Quiz getFirstByOwnerIdAndMessageIdOrderByIdDesc(Long ownerId, Long messageId);
 
-    Page<Quiz> getAllByOwnerIdOrderByIdDesc(Long ownerId, Pageable pageable);
-
     @Query("SELECT q FROM Quiz q WHERE q.ownerId = :userId AND (q.createdDateTime > :cutoffTime OR q.finishedDateTime > :cutoffTime)")
     List<Quiz> findAllRecentQuizzesByUserId(@Param("userId") Long userId, @Param("cutoffTime") LocalDateTime cutoffTime);
+
+    @Query("""
+                SELECT
+                COUNT(CASE WHEN q.status = 'FINISHED' THEN 1 END) AS totalFinishedQuizCount,
+                COUNT(CASE WHEN q.createdDateTime BETWEEN :cutoffTime AND :now
+                        OR q.finishedDateTime BETWEEN :cutoffTime AND :now THEN 1 END) AS availableQuizCount
+            FROM
+                Quiz q
+            WHERE
+                q.ownerId = :ownerId
+            """)
+    QuizCountProj getQuizCount(@Param("ownerId") Long ownerId,
+                               @Param("cutoffTime") LocalDateTime cutoffTime,
+                               @Param("now") LocalDateTime now);
 }
