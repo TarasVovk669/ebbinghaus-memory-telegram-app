@@ -15,8 +15,8 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
 
     Quiz getFirstByOwnerIdAndMessageIdOrderByIdDesc(Long ownerId, Long messageId);
 
-    @Query("SELECT q FROM Quiz q WHERE q.ownerId = :userId AND (q.createdDateTime > :cutoffTime OR q.finishedDateTime > :cutoffTime)")
-    List<Quiz> findAllRecentQuizzesByUserId(@Param("userId") Long userId, @Param("cutoffTime") LocalDateTime cutoffTime);
+    @Query("SELECT count(q) FROM Quiz q WHERE q.ownerId = :userId AND (q.createdDateTime BETWEEN :cutoffTime AND :now OR q.finishedDateTime BETWEEN :cutoffTime AND :now)")
+    Long findAllRecentQuizzesByUserId(@Param("userId") Long userId, @Param("cutoffTime") LocalDateTime cutoffTime, @Param("now") LocalDateTime now);
 
     @Query("""
                 SELECT

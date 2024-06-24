@@ -217,10 +217,12 @@ public class QuizServiceImpl implements QuizService {
     }
 
     private QuizTuple handleNewQuiz(Long userId, Long messageId, String languageCode) {
-        LocalDateTime cutoffDateTime = LocalDateTime.now(UTC).minusHours(24);
-        var lastUserQuizzes = quizRepository.findAllRecentQuizzesByUserId(userId, cutoffDateTime);
+        LocalDateTime now = LocalDateTime.now(UTC);
+        LocalDateTime cutoffDateTime = now.minusHours(24);
+        var quizzesCount = quizRepository.findAllRecentQuizzesByUserId(userId, cutoffDateTime, now);
 
-        if (lastUserQuizzes.size() >= DEFAULT_QUIZ_PAGE_SIZE) {
+        System.out.println(quizzesCount);
+        if (quizzesCount >= DEFAULT_QUIZ_PAGE_SIZE) {
             return new QuizTuple(MAX_PER_DAY_LIMIT_STATUS, null);
         }
 
