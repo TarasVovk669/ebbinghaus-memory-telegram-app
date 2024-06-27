@@ -121,6 +121,13 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    public Optional<EMessage> getMessageOptional(Long id, boolean fetch) {
+        log.info("Get message with id: {} and fetch: {}", id, fetch);
+
+        return fetch ? messageRepository.getEMessageById(id) : messageRepository.findById(id);
+    }
+
+    @Override
     @Transactional
     public EMessage getUpdatedMessage(Long id, boolean fetch) {
         log.info("Get updated_message with id: {} and fetch: {}", id, fetch);
@@ -197,7 +204,7 @@ public class MessageServiceImpl implements MessageService {
                                 .setNextExecutionDateTime(calculateNextExecutionTime(LocalDateTime.now(UTC))))
                         .orElseThrow(() -> new EntityNotFoundException("Message not found")));
 
-        utilityService.rescheduleJob(updatedMessage,chatId);
+        utilityService.rescheduleJob(updatedMessage, chatId);
         return updatedMessage;
     }
 

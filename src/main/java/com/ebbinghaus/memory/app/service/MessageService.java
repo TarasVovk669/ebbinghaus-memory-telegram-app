@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 public interface MessageService {
 
@@ -17,6 +18,8 @@ public interface MessageService {
     Page<EMessage> getMessages(Long userId, Long categoryId, int page, int size, Sort sort);
 
     EMessage getMessage(Long id, boolean fetch);
+
+    Optional<EMessage> getMessageOptional(Long id, boolean fetch);
 
     EMessage getUpdatedMessage(Long id, boolean fetch);
 

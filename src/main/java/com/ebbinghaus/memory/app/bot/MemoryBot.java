@@ -52,6 +52,7 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
     private static final Logger log = LoggerFactory.getLogger(MemoryBot.class);
     public static final int MINIMUM_TEST_PASSED_LENGTH = 500;
+    public static final String MESSAGE_CAN_T_BE_DELETED_FOR_EVERYONE = "message can't be deleted for everyone";
 
     private final String token;
     private final String ownerName;
@@ -924,42 +925,54 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
     private final Function<InputUserData, Boolean> handleMessageView =
             userData -> {
-                var message =
-                        userData
-                                .getMessageService()
-                                .getMessage(Long.valueOf(userData.getCallBackData().get(MESSAGE_ID)), true);
 
-                var suffix = userData
-                        .getMessageSourceService()
-                        .getMessage("messages.suffix.execution-time", userData.getLanguageCode());
-                var messageString = parseMessage(message, true, suffix, userData.getLanguageCode(), userData.getMessageSourceService());
+                userData
+                        .getMessageService()
+                        .getMessageOptional(Long.valueOf(userData.getCallBackData().get(MESSAGE_ID)), true)
+                        .ifPresentOrElse(message -> {
+                                    var suffix = userData
+                                            .getMessageSourceService()
+                                            .getMessage("messages.suffix.execution-time", userData.getLanguageCode());
+                                    var messageString = parseMessage(message, true, suffix, userData.getLanguageCode(), userData.getMessageSourceService());
 
-                manageMsgType(message)
-                        .editMessage(
-                                MessageDataRequest.builder()
-                                        .chatId(userData.getChatId())
-                                        .messageText(messageString)
-                                        .messageId(userData.getMessageId())
-                                        .entities(
-                                                manageMessageEntitiesLongMessage(
-                                                        message.getMessageEntities().stream()
-                                                                .map(EMessageEntity::getValue).toList(),
-                                                        messageString,
-                                                        true,
-                                                        suffix,
-                                                        userData.getObjectMapper()))
-                                        .replyKeyboard(
-                                                userData.getKeyboardFactoryService().getViewKeyboard(
-                                                        message.getId(),
-                                                        userData.getLanguageCode(),
-                                                        message.getType().equals(EMessageType.FORWARDED),
-                                                        null == message.getFile()
-                                                                || (null != message.getText()
-                                                                && messageString.length() >= MINIMUM_TEST_PASSED_LENGTH)
-                                                ))
-                                        .file(message.getFile())
-                                        .build(),
-                                userData.getTelegramClient());
+                                    manageMsgType(message)
+                                            .editMessage(
+                                                    MessageDataRequest.builder()
+                                                            .chatId(userData.getChatId())
+                                                            .messageText(messageString)
+                                                            .messageId(userData.getMessageId())
+                                                            .entities(
+                                                                    manageMessageEntitiesLongMessage(
+                                                                            message.getMessageEntities().stream()
+                                                                                    .map(EMessageEntity::getValue).toList(),
+                                                                            messageString,
+                                                                            true,
+                                                                            suffix,
+                                                                            userData.getObjectMapper()))
+                                                            .replyKeyboard(
+                                                                    userData.getKeyboardFactoryService().getViewKeyboard(
+                                                                            message.getId(),
+                                                                            userData.getLanguageCode(),
+                                                                            message.getType().equals(EMessageType.FORWARDED),
+                                                                            null == message.getFile()
+                                                                                    || (null != message.getText()
+                                                                                    && messageString.length() >= MINIMUM_TEST_PASSED_LENGTH)
+                                                                    ))
+                                                            .file(message.getFile())
+                                                            .build(),
+                                                    userData.getTelegramClient());
+                                }, () -> userData.getMessageType()
+                                        .editMessage(
+                                                MessageDataRequest.builder()
+                                                        .chatId(userData.getChatId())
+                                                        .messageText(userData.getMessageSourceService()
+                                                                .getMessage(
+                                                                        "messages.error.not_found",
+                                                                        userData.getLanguageCode()))
+                                                        .messageId(userData.getMessageId())
+                                                        .build(),
+                                                userData.getTelegramClient())
+                        );
                 return Boolean.TRUE;
             };
 
@@ -967,43 +980,55 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
             userData -> {
                 clearMessages(userData, SHORT_MESSAGE);
 
-                var message =
-                        userData
-                                .getMessageService()
-                                .getMessage(Long.valueOf(userData.getCallBackData().get(MESSAGE_ID)), true);
+                userData
+                        .getMessageService()
+                        .getMessageOptional(Long.valueOf(userData.getCallBackData().get(MESSAGE_ID)), true)
+                        .ifPresentOrElse(message -> {
+                            var suffix = userData
+                                    .getMessageSourceService()
+                                    .getMessage("messages.suffix.execution-time", userData.getLanguageCode());
+                            var messageString = parseMessage(message, false, suffix, userData.getLanguageCode(), userData.getMessageSourceService());
 
-                var suffix = userData
-                        .getMessageSourceService()
-                        .getMessage("messages.suffix.execution-time", userData.getLanguageCode());
-                var messageString = parseMessage(message, false, suffix, userData.getLanguageCode(), userData.getMessageSourceService());
+                            var msg =
+                                    manageMsgType(message)
+                                            .sendMessage(
+                                                    MessageDataRequest.builder()
+                                                            .chatId(userData.getChatId())
+                                                            .messageText(messageString)
+                                                            .entities(
+                                                                    manageMessageEntitiesShortMessage(
+                                                                            message.getMessageEntities(),
+                                                                            messageString,
+                                                                            SHORT_MESSAGE_SYMBOL_QUANTITY,
+                                                                            suffix,
+                                                                            userData.getObjectMapper()))
+                                                            .replyKeyboard(userData.getKeyboardFactoryService().getMessageKeyboard(
+                                                                    message.getId(),
+                                                                    userData.getLanguageCode()))
+                                                            .file(message.getFile())
+                                                            .build(),
+                                                    userData.getTelegramClient());
 
-                var msg =
-                        manageMsgType(message)
-                                .sendMessage(
+                            userData
+                                    .getChatMessageStateService()
+                                    .addMessage(
+                                            userData.getUser().getId(),
+                                            userData.getChatId(),
+                                            SHORT_MESSAGE,
+                                            List.of(msg.getMessageId()));
+                        }, () -> userData.getMessageType()
+                                .editMessage(
                                         MessageDataRequest.builder()
                                                 .chatId(userData.getChatId())
-                                                .messageText(messageString)
-                                                .entities(
-                                                        manageMessageEntitiesShortMessage(
-                                                                message.getMessageEntities(),
-                                                                messageString,
-                                                                SHORT_MESSAGE_SYMBOL_QUANTITY,
-                                                                suffix,
-                                                                userData.getObjectMapper()))
-                                                .replyKeyboard(userData.getKeyboardFactoryService().getMessageKeyboard(
-                                                        message.getId(),
-                                                        userData.getLanguageCode()))
-                                                .file(message.getFile())
+                                                .messageText(userData.getMessageSourceService()
+                                                        .getMessage(
+                                                                "messages.error.not_found",
+                                                                userData.getLanguageCode()))
+                                                .messageId(userData.getMessageId())
                                                 .build(),
-                                        userData.getTelegramClient());
+                                        userData.getTelegramClient()));
 
-                userData
-                        .getChatMessageStateService()
-                        .addMessage(
-                                userData.getUser().getId(),
-                                userData.getChatId(),
-                                SHORT_MESSAGE,
-                                List.of(msg.getMessageId()));
+
                 return Boolean.TRUE;
             };
 
@@ -1116,13 +1141,35 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
 
     private final Function<InputUserData, Boolean> handleMessageDeleteYes =
             userData -> {
-                deleteMessage(userData.getChatId(), userData.getMessageId());
 
-                userData
-                        .getMessageService()
-                        .deleteMessage(
-                                Long.valueOf(userData.getCallBackData().get(MESSAGE_ID)),
-                                userData.getChatId());
+                userData.getMessageService()
+                        .getMessageOptional(Long.valueOf(userData.getCallBackData().get(MESSAGE_ID)), false)
+                        .ifPresentOrElse(m -> {
+                                    deleteMessage(
+                                            userData.getChatId(),
+                                            userData.getMessageId(),
+                                            userData.getLanguageCode(),
+                                            m);
+
+                                    userData
+                                            .getMessageService()
+                                            .deleteMessage(
+                                                    m.getId(),
+                                                    userData.getChatId());
+                                },
+                                () -> userData.getMessageType()
+                                        .editMessage(
+                                                MessageDataRequest.builder()
+                                                        .chatId(userData.getChatId())
+                                                        .messageText(userData.getMessageSourceService()
+                                                                .getMessage(
+                                                                        "messages.error.not_found",
+                                                                        userData.getLanguageCode()))
+                                                        .messageId(userData.getMessageId())
+                                                        .build(),
+                                                userData.getTelegramClient()));
+
+
                 return Boolean.TRUE;
             };
 
@@ -1298,6 +1345,32 @@ public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadU
             telegramClient.execute(DeleteMessage.builder().chatId(chatId).messageId(messageId).build());
         } catch (TelegramApiException e) {
             log.warn("Error to delete messages with chat_id:{} and message_id: {} and error_message: {}", chatId, messageId, e.getMessage());
+        }
+    }
+
+    private void deleteMessage(long chatId, int messageId, String languageCode, EMessage message) {
+        try {
+            telegramClient.execute(
+                    DeleteMessage.builder()
+                            .chatId(chatId)
+                            .messageId(messageId)
+                            .build());
+        } catch (TelegramApiException e) {
+            log.warn("Error to delete message with chat_id:{} and message_id: {} and error_message: {}", chatId, messageId, e.getMessage());
+
+            if (e.getMessage().contains(MESSAGE_CAN_T_BE_DELETED_FOR_EVERYONE)) {
+                log.warn("Edit existing message with id: {}", messageId);
+
+                manageMsgType(message)
+                        .editMessage(
+                                MessageDataRequest.builder()
+                                        .chatId(chatId)
+                                        .messageText(messageSourceService.getMessage("messages.error.tg_msg_not_allow_delete", languageCode))
+                                        .messageId(messageId)
+                                        .file(message.getFile())
+                                        .build(),
+                                telegramClient);
+            }
         }
     }
 
