@@ -1,7 +1,6 @@
 package com.ebbinghaus.memory.app.model;
 
 import com.ebbinghaus.memory.app.domain.File;
-import com.ebbinghaus.memory.app.service.*;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;

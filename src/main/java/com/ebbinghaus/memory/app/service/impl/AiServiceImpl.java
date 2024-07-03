@@ -45,7 +45,7 @@ public class AiServiceImpl implements AiService {
                 log.info("Response: {}", response);
                 wrapper = objectMapper.readValue(response, QuestionsWrapper.class);
 
-                if (wrapper.getError() != null) {
+                if (null != wrapper.getError() || null == wrapper.getQuestions()) {
                     return new AiQuestionTuple(wrapper.getError(), null);
                 }
                 break; // parsing successful, break out of the retry loop

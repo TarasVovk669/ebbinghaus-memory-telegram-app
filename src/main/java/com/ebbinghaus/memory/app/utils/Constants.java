@@ -54,7 +54,6 @@ public class Constants {
 
   public static final String START = "/start";
   public static final String HELP = "/help";
-  public static final String MENU = "/menu";
   public static final int SHORT_MESSAGE_SYMBOL_QUANTITY = 300;
 
   public static final String DOTS_STR = "...";
