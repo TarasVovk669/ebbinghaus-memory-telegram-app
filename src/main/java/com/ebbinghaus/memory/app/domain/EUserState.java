@@ -16,13 +16,10 @@ import lombok.NoArgsConstructor;
 @Table(name = "e_user_state")
 public class EUserState {
 
-    @Id
-    private Long userId;
+  @Id private Long userId;
 
-    @Enumerated(EnumType.STRING)
-    private UserState state;
+  @Enumerated(EnumType.STRING)
+  private UserState state;
 
-    private LocalDateTime dateTime;
-
-
+  private LocalDateTime dateTime;
 }

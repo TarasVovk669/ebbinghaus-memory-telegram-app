@@ -14,23 +14,16 @@ import org.telegram.telegrambots.meta.api.objects.User;
 @ToString
 public class InputUserData {
 
-    private File file;
-    private User user;
-    private Long chatId;
-    private UserState state;
-    private String ownerName;
-    private Integer messageId;
-    private String messageText;
-    private String languageCode;
-    private MessageType messageType;
-    private boolean isForwardedMessage;
-    private Map<String, String> callBackData;
-    private List<MessageEntity> messageEntities;
-
-
-
-
-
-
-
+  private File file;
+  private User user;
+  private Long chatId;
+  private UserState state;
+  private String ownerName;
+  private Integer messageId;
+  private String messageText;
+  private String languageCode;
+  private MessageType messageType;
+  private boolean isForwardedMessage;
+  private Map<String, String> callBackData;
+  private List<MessageEntity> messageEntities;
 }

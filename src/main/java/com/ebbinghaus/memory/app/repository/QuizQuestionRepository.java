@@ -11,13 +11,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface QuizQuestionRepository extends JpaRepository<QuizQuestion, Long> {
 
-    Optional<QuizQuestion> findFirstByQuizIdAndStatusIsNullOrderById(Long quizId);
+  Optional<QuizQuestion> findFirstByQuizIdAndStatusIsNullOrderById(Long quizId);
 
-    @Query("SELECT " +
-            "COUNT(q) AS totalQuestions, " +
-            "SUM(CASE WHEN q.status IS NOT NULL THEN 1 ELSE 0 END) AS answeredQuestions, " +
-            "SUM(CASE WHEN q.status = 'CORRECT' THEN 1 ELSE 0 END) AS correctQuestions " +
-            "FROM QuizQuestion q WHERE q.quizId = :quizId")
-    QuizQuestionProj findQuizStatisticsByQuizId(@Param("quizId") Long quizId);
-
+  @Query(
+      "SELECT "
+          + "COUNT(q) AS totalQuestions, "
+          + "SUM(CASE WHEN q.status IS NOT NULL THEN 1 ELSE 0 END) AS answeredQuestions, "
+          + "SUM(CASE WHEN q.status = 'CORRECT' THEN 1 ELSE 0 END) AS correctQuestions "
+          + "FROM QuizQuestion q WHERE q.quizId = :quizId")
+  QuizQuestionProj findQuizStatisticsByQuizId(@Param("quizId") Long quizId);
 }

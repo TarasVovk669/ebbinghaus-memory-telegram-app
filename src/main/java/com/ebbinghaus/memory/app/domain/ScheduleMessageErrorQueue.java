@@ -17,15 +17,13 @@ import lombok.NoArgsConstructor;
 @Table(name = "schedule_message_error_queue")
 public class ScheduleMessageErrorQueue {
 
-    @Id
-    private Long messageId;
+  @Id private Long messageId;
 
-    private Long chatId;
+  private Long chatId;
 
-    private Long ownerId;
+  private Long ownerId;
 
-    private String errorText;
+  private String errorText;
 
-    private LocalDateTime time;
-
+  private LocalDateTime time;
 }

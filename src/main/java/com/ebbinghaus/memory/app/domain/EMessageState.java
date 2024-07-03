@@ -19,9 +19,8 @@ import lombok.experimental.Accessors;
 @Table(name = "e_message_state")
 public class EMessageState {
 
-    @EmbeddedId
-    private EMessageStateId id;
+  @EmbeddedId private EMessageStateId id;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    private Set<Integer> messageIds = new HashSet<>();
+  @ElementCollection(fetch = FetchType.EAGER)
+  private Set<Integer> messageIds = new HashSet<>();
 }

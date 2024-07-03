@@ -12,8 +12,7 @@ import lombok.NoArgsConstructor;
 @Embeddable
 public class EMessageCategoryId implements Serializable {
 
-    private Long messageId;
+  private Long messageId;
 
-    private Long categoryId;
-
+  private Long categoryId;
 }

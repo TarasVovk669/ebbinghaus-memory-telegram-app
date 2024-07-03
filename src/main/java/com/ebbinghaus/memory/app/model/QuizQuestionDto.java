@@ -14,14 +14,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class QuizQuestionDto {
 
-    private String text;
+  private String text;
 
-    private QuestionType type;
+  private QuestionType type;
 
-    private Map<String, String> variants;
+  private Map<String, String> variants;
 
-    @JsonProperty("correct_answer")
-    private String correctAnswer;
-
-
+  @JsonProperty("correct_answer")
+  private String correctAnswer;
 }

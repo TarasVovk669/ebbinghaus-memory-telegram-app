@@ -9,31 +9,33 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 public interface KeyboardService {
-    ReplyKeyboard getMainMenuKeyboard(String languageCode);
+  ReplyKeyboard getMainMenuKeyboard(String languageCode);
 
-    InlineKeyboardMarkup getMessageKeyboard(Long messageId, String languageCode);
+  InlineKeyboardMarkup getMessageKeyboard(Long messageId, String languageCode);
 
-    InlineKeyboardMarkup getViewKeyboard(
-            Long messageId, String languageCode, boolean isForwardedMessage, boolean isSimpleMessage);
+  InlineKeyboardMarkup getViewKeyboard(
+      Long messageId, String languageCode, boolean isForwardedMessage, boolean isSimpleMessage);
 
-    InlineKeyboardMarkup getDeleteKeyboard(Long messageId, String languageCode);
+  InlineKeyboardMarkup getDeleteKeyboard(Long messageId, String languageCode);
 
-    InlineKeyboardMarkup getRestartKeyboard(Long messageId, String languageCode);
+  InlineKeyboardMarkup getRestartKeyboard(Long messageId, String languageCode);
 
-    InlineKeyboardMarkup getProfileKeyboard(String languageCode);
+  InlineKeyboardMarkup getProfileKeyboard(String languageCode);
 
-    InlineKeyboardMarkup getAvailableLanguage(String languageCode);
+  InlineKeyboardMarkup getAvailableLanguage(String languageCode);
 
-    InlineKeyboardMarkup getSingleBackProfileKeyboard(String languageCode);
+  InlineKeyboardMarkup getSingleBackProfileKeyboard(String languageCode);
 
-    InlineKeyboardMarkup getSingleBackFullMessageKeyboard(String languageCode, Long messageId);
+  InlineKeyboardMarkup getSingleBackFullMessageKeyboard(String languageCode, Long messageId);
 
-    InlineKeyboardMarkup getSingleBackFullMessageKeyboard(String languageCode, Long messageId, String messageText);
+  InlineKeyboardMarkup getSingleBackFullMessageKeyboard(
+      String languageCode, Long messageId, String messageText);
 
-    InlineKeyboardMarkup getQuizQuestionKeyboard(QuizQuestion qq, Long messageId, String languageCode);
+  InlineKeyboardMarkup getQuizQuestionKeyboard(
+      QuizQuestion qq, Long messageId, String languageCode);
 
-    InlineKeyboardMarkup getIncorrectQuizKeyboard(String languageCode, Long messageId, Long quizId);
+  InlineKeyboardMarkup getIncorrectQuizKeyboard(String languageCode, Long messageId, Long quizId);
 
-    ArrayList<InlineKeyboardButton> getNavigationButtons(
-            int page, int size, Page<?> messages, String operation, InputUserData inputUserData);
+  ArrayList<InlineKeyboardButton> getNavigationButtons(
+      int page, int size, Page<?> messages, String operation, InputUserData inputUserData);
 }

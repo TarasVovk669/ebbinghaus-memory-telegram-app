@@ -11,9 +11,7 @@ import org.telegram.telegrambots.longpolling.starter.TelegramBotStarterConfigura
 @Import(TelegramBotStarterConfiguration.class)
 public class EbbinghausMemoryTelegramAppApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(EbbinghausMemoryTelegramAppApplication.class, args);
-
-
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(EbbinghausMemoryTelegramAppApplication.class, args);
+  }
 }

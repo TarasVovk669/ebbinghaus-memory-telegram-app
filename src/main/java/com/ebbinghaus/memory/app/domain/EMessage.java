@@ -21,65 +21,61 @@ import org.jetbrains.annotations.NotNull;
 @Table(name = "e_message")
 public class EMessage {
 
-    @Id
-    @SequenceGenerator(name = "e_message_seq", sequenceName = "e_message_seq", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "e_message_seq")
-    private Long id;
+  @Id
+  @SequenceGenerator(name = "e_message_seq", sequenceName = "e_message_seq", allocationSize = 1)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "e_message_seq")
+  private Long id;
 
-    @Column(columnDefinition = "TEXT")
-    private String text;
+  @Column(columnDefinition = "TEXT")
+  private String text;
 
-    private Long ownerId;
+  private Long ownerId;
 
-    private Long messageId;
+  private Long messageId;
 
-    @NotNull
-    private Integer executionStep;
+  @NotNull private Integer executionStep;
 
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    private EMessageType type;
+  @NotNull
+  @Enumerated(EnumType.STRING)
+  private EMessageType type;
 
-    @Embedded
-    private File file;
+  @Embedded private File file;
 
-    @OneToMany(cascade = {CascadeType.REMOVE})
-    @JoinColumn(name = "message_id")
-    private Set<EMessageCategory> messageCategories = new HashSet<>();
+  @OneToMany(cascade = {CascadeType.REMOVE})
+  @JoinColumn(name = "message_id")
+  private Set<EMessageCategory> messageCategories = new HashSet<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "e_message_id")
-    private Set<EMessageEntity> messageEntities = new HashSet<>();
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "e_message_id")
+  private Set<EMessageEntity> messageEntities = new HashSet<>();
 
-    @CreationTimestamp
-    private LocalDateTime createdDateTime;
+  @CreationTimestamp private LocalDateTime createdDateTime;
 
-    @UpdateTimestamp
-    private LocalDateTime updatedDateTime;
+  @UpdateTimestamp private LocalDateTime updatedDateTime;
 
-    private LocalDateTime nextExecutionDateTime;
+  private LocalDateTime nextExecutionDateTime;
 
-    public void setMessageEntities(Set<EMessageEntity> messageEntities) {
-        this.messageEntities.clear();
-        if (messageEntities != null) {
-            this.messageEntities.addAll(messageEntities);
-        }
+  public void setMessageEntities(Set<EMessageEntity> messageEntities) {
+    this.messageEntities.clear();
+    if (messageEntities != null) {
+      this.messageEntities.addAll(messageEntities);
     }
+  }
 
-    public void setMessageEntitiesDirectly(Set<EMessageEntity> messageEntities) {
-        this.messageEntities = messageEntities;
-    }
+  public void setMessageEntitiesDirectly(Set<EMessageEntity> messageEntities) {
+    this.messageEntities = messageEntities;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        EMessage eMessage = (EMessage) o;
-        return Objects.equals(id, eMessage.id) && Objects.equals(ownerId, eMessage.ownerId);
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    EMessage eMessage = (EMessage) o;
+    return Objects.equals(id, eMessage.id) && Objects.equals(ownerId, eMessage.ownerId);
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, ownerId);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, ownerId);
+  }
 }

@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class QuestionsWrapper {
-    private List<QuizQuestionDto> questions;
-    private QuizManageStatus error;
+  private List<QuizQuestionDto> questions;
+  private QuizManageStatus error;
 }

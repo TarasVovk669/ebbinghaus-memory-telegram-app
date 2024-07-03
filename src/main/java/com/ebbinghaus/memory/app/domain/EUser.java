@@ -1,6 +1,5 @@
 package com.ebbinghaus.memory.app.domain;
 
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -19,12 +18,9 @@ import org.hibernate.annotations.CreationTimestamp;
 @Table(name = "e_user")
 public class EUser {
 
-    @Id
-    private Long id;
+  @Id private Long id;
 
-    private String languageCode;
+  private String languageCode;
 
-    @CreationTimestamp
-    private LocalDateTime createdDateTime;
-
+  @CreationTimestamp private LocalDateTime createdDateTime;
 }

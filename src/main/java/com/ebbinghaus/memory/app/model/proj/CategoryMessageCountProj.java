@@ -2,9 +2,9 @@ package com.ebbinghaus.memory.app.model.proj;
 
 public interface CategoryMessageCountProj {
 
-    Long getId();
+  Long getId();
 
-    String getName();
+  String getName();
 
-    Long getMsgQuantity();
+  Long getMsgQuantity();
 }

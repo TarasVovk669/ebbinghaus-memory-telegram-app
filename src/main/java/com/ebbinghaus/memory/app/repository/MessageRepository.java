@@ -13,18 +13,21 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MessageRepository extends JpaRepository<EMessage, Long> {
 
-    Page<EMessage> getAllByOwnerId(Long ownerId, Pageable pageable);
+  Page<EMessage> getAllByOwnerId(Long ownerId, Pageable pageable);
 
-    @Query("SELECT m FROM EMessage m JOIN m.messageCategories c WHERE m.ownerId=:ownerId AND c.category.id = :categoryId")
-    Page<EMessage> getAllByOwnerIdAndCategories(Long ownerId, Long categoryId, Pageable pageable);
+  @Query(
+      "SELECT m FROM EMessage m JOIN m.messageCategories c WHERE m.ownerId=:ownerId AND c.category.id = :categoryId")
+  Page<EMessage> getAllByOwnerIdAndCategories(Long ownerId, Long categoryId, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"messageCategories", "messageEntities"})
-    Optional<EMessage> getEMessageById(Long id);
+  @EntityGraph(attributePaths = {"messageCategories", "messageEntities"})
+  Optional<EMessage> getEMessageById(Long id);
 
-    @EntityGraph(attributePaths = {"messageCategories", "messageEntities"})
-    Optional<EMessage> getEMessageByMessageIdAndOwnerId(Long messageId, Long ownerId);
+  @EntityGraph(attributePaths = {"messageCategories", "messageEntities"})
+  Optional<EMessage> getEMessageByMessageIdAndOwnerId(Long messageId, Long ownerId);
 
-    @Query(value = """
+  @Query(
+      value =
+          """
                         WITH message_counts AS (SELECT owner_id, COUNT(*) AS message_count
                                     FROM e_message
                                     WHERE owner_id = :ownerId
@@ -38,6 +41,7 @@ public interface MessageRepository extends JpaRepository<EMessage, Long> {
             FROM (SELECT :ownerId AS owner_id) owner
                      LEFT JOIN message_counts m ON owner.owner_id = m.owner_id
                      LEFT JOIN category_counts c ON owner.owner_id = c.owner_id
-                        """, nativeQuery = true)
-    DataMessageCategoryProj getMessageAndCategoryCount(Long ownerId);
+                        """,
+      nativeQuery = true)
+  DataMessageCategoryProj getMessageAndCategoryCount(Long ownerId);
 }

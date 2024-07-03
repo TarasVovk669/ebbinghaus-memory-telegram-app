@@ -10,14 +10,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RestClientConfig {
 
-    @Bean
-    public RestClientCustomizer restClientCustomizer() {
-        return restClientBuilder -> restClientBuilder
-                .requestFactory(ClientHttpRequestFactories.get(ClientHttpRequestFactorySettings.DEFAULTS
-                        .withConnectTimeout(Duration.ofSeconds(30))
-                        .withReadTimeout(Duration.ofSeconds(30))));
-    }
-
-
-
+  @Bean
+  public RestClientCustomizer restClientCustomizer() {
+    return restClientBuilder ->
+        restClientBuilder.requestFactory(
+            ClientHttpRequestFactories.get(
+                ClientHttpRequestFactorySettings.DEFAULTS
+                    .withConnectTimeout(Duration.ofSeconds(30))
+                    .withReadTimeout(Duration.ofSeconds(30))));
+  }
 }

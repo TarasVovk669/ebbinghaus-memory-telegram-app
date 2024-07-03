@@ -16,26 +16,24 @@ import lombok.experimental.Accessors;
 @Table(name = "e_quiz")
 public class Quiz {
 
-    @Id
-    @SequenceGenerator(name = "e_quiz_seq", sequenceName = "e_quiz_seq", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "e_quiz_seq")
-    private Long id;
+  @Id
+  @SequenceGenerator(name = "e_quiz_seq", sequenceName = "e_quiz_seq", allocationSize = 1)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "e_quiz_seq")
+  private Long id;
 
-    private Long ownerId;
+  private Long ownerId;
 
-    private Long messageId;
+  private Long messageId;
 
-    private LocalDateTime createdDateTime;
+  private LocalDateTime createdDateTime;
 
-    private LocalDateTime finishedDateTime;
+  private LocalDateTime finishedDateTime;
 
-    @Enumerated(EnumType.STRING)
-    private QuizStatus status;
+  @Enumerated(EnumType.STRING)
+  private QuizStatus status;
 
-    @ToString.Exclude
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "quiz_id")
-    private List<QuizQuestion> questions = new ArrayList<>();
-
-
+  @ToString.Exclude
+  @OneToMany(cascade = CascadeType.ALL)
+  @JoinColumn(name = "quiz_id")
+  private List<QuizQuestion> questions = new ArrayList<>();
 }

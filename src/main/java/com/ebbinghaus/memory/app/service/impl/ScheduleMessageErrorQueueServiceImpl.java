@@ -12,13 +12,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ScheduleMessageErrorQueueServiceImpl implements ScheduleMessageErrorQueueService {
 
-    private static final Logger log = LoggerFactory.getLogger(ScheduleMessageErrorQueueServiceImpl.class);
+  private static final Logger log =
+      LoggerFactory.getLogger(ScheduleMessageErrorQueueServiceImpl.class);
 
-    private final ScheduleMessageErrorQueueRepository scheduleMessageErrorQueueRepository;
+  private final ScheduleMessageErrorQueueRepository scheduleMessageErrorQueueRepository;
 
-    @Override
-    public ScheduleMessageErrorQueue save(ScheduleMessageErrorQueue errorMessage) {
-        log.info("Save error_schedule_message: {}", errorMessage);
-        return scheduleMessageErrorQueueRepository.save(errorMessage);
-    }
+  @Override
+  public ScheduleMessageErrorQueue save(ScheduleMessageErrorQueue errorMessage) {
+    log.info("Save error_schedule_message: {}", errorMessage);
+    return scheduleMessageErrorQueueRepository.save(errorMessage);
+  }
 }

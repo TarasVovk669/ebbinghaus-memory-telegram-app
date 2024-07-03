@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MessageSourceServiceImpl implements MessageSourceService {
 
-    private final MessageSource messageSource;
+  private final MessageSource messageSource;
 
-    @Override
-    public String getMessage(String key, String locale) {
-        return messageSource.getMessage(key, new Object[0], Locale.of(locale));
-    }
+  @Override
+  public String getMessage(String key, String locale) {
+    return messageSource.getMessage(key, new Object[0], Locale.of(locale));
+  }
 }

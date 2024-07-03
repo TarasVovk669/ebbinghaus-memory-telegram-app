@@ -17,58 +17,50 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ChatMessageStateServiceImpl implements ChatMessageStateService {
 
-    private static final Logger log = LoggerFactory.getLogger(ChatMessageStateServiceImpl.class);
-    public static final HashSet<Integer> HASH_SET = new HashSet<>();
+  private static final Logger log = LoggerFactory.getLogger(ChatMessageStateServiceImpl.class);
+  public static final HashSet<Integer> HASH_SET = new HashSet<>();
 
-    private final MessageStateRepository messageStateRepository;
+  private final MessageStateRepository messageStateRepository;
 
-    @Override
-    public void addMessage(
-            Long userId, Long chatId, UserState state, Collection<Integer> messageIds) {
-        log.info(
-                "Add message with id: {}, chat_id: {}, user_id: {} and state: {}",
-                messageIds,
-                chatId,
-                userId,
-                state);
+  @Override
+  public void addMessage(
+      Long userId, Long chatId, UserState state, Collection<Integer> messageIds) {
+    log.info(
+        "Add message with id: {}, chat_id: {}, user_id: {} and state: {}",
+        messageIds,
+        chatId,
+        userId,
+        state);
 
-        var id = EMessageStateId.builder()
-                .chatId(chatId)
-                .userId(userId)
-                .state(state)
-                .build();
+    var id = EMessageStateId.builder().chatId(chatId).userId(userId).state(state).build();
 
-        messageStateRepository.findById(id)
-                .ifPresentOrElse(
-                        ms -> {
-                            ms.getMessageIds().addAll(messageIds);
-                            messageStateRepository.save(ms);
-                        },
-                        () -> messageStateRepository.save(EMessageState.builder()
-                                .id(id)
-                                .messageIds(new HashSet<>(messageIds))
-                                .build()));
-    }
+    messageStateRepository
+        .findById(id)
+        .ifPresentOrElse(
+            ms -> {
+              ms.getMessageIds().addAll(messageIds);
+              messageStateRepository.save(ms);
+            },
+            () ->
+                messageStateRepository.save(
+                    EMessageState.builder().id(id).messageIds(new HashSet<>(messageIds)).build()));
+  }
 
-    @Override
-    public Set<Integer> getMessages(Long userId, Long chatId, UserState state) {
-        log.info("Get messages - chat_id: {}, user_id: {} and state: {}", chatId, userId, state);
+  @Override
+  public Set<Integer> getMessages(Long userId, Long chatId, UserState state) {
+    log.info("Get messages - chat_id: {}, user_id: {} and state: {}", chatId, userId, state);
 
-        return messageStateRepository.findById(EMessageStateId.builder()
-                .chatId(chatId)
-                .userId(userId)
-                .state(state)
-                .build()).map(EMessageState::getMessageIds).orElse(HASH_SET);
-    }
+    return messageStateRepository
+        .findById(EMessageStateId.builder().chatId(chatId).userId(userId).state(state).build())
+        .map(EMessageState::getMessageIds)
+        .orElse(HASH_SET);
+  }
 
-    @Override
-    public void clearStateMessages(Long userId, Long chatId, UserState state) {
-        log.info("clear messages - chat_id: {}, user_id: {} and state: {}", chatId, userId, state);
+  @Override
+  public void clearStateMessages(Long userId, Long chatId, UserState state) {
+    log.info("clear messages - chat_id: {}, user_id: {} and state: {}", chatId, userId, state);
 
-        messageStateRepository.deleteById(EMessageStateId.builder()
-                .chatId(chatId)
-                .userId(userId)
-                .state(state)
-                .build());
-    }
+    messageStateRepository.deleteById(
+        EMessageStateId.builder().chatId(chatId).userId(userId).state(state).build());
+  }
 }

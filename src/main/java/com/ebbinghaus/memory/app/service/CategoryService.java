@@ -12,13 +12,13 @@ import org.springframework.data.domain.Sort;
 
 public interface CategoryService {
 
-    Page<CategoryMessageCount> getCategories(Long userId, int page, int size, Sort sort);
+  Page<CategoryMessageCount> getCategories(Long userId, int page, int size, Sort sort);
 
-    Map<String, Category> existingCategories(Set<String> categoriesName, Long ownerId);
+  Map<String, Category> existingCategories(Set<String> categoriesName, Long ownerId);
 
-    Category save(Category category);
+  Category save(Category category);
 
-    List<CategoryMessageCountProj> findCategoryMessageCounts(Long ownerId, List<Long> ids);
+  List<CategoryMessageCountProj> findCategoryMessageCounts(Long ownerId, List<Long> ids);
 
-    void deleteById(Collection<Long> ids, Long ownerId);
+  void deleteById(Collection<Long> ids, Long ownerId);
 }

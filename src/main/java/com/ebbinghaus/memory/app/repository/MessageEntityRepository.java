@@ -10,7 +10,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MessageEntityRepository extends JpaRepository<EMessageEntity, Long> {
 
-  @Query(value = "select * from e_message_entity where e_message_id in (:messages_ids)", nativeQuery = true)
+  @Query(
+      value = "select * from e_message_entity where e_message_id in (:messages_ids)",
+      nativeQuery = true)
   List<EMessageEntity> getAllByIdsIn(@Param("messages_ids") List<Long> messagesIds);
-
 }

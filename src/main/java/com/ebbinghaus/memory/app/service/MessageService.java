@@ -10,26 +10,25 @@ import org.springframework.data.domain.Sort;
 
 public interface MessageService {
 
-    EMessage addMessage(MessageTuple message);
+  EMessage addMessage(MessageTuple message);
 
-    EMessage updateMessage(MessageTuple message);
+  EMessage updateMessage(MessageTuple message);
 
-    Page<EMessage> getMessages(Long userId, Long categoryId, int page, int size, Sort sort);
+  Page<EMessage> getMessages(Long userId, Long categoryId, int page, int size, Sort sort);
 
-    EMessage getMessage(Long id, boolean fetch);
+  EMessage getMessage(Long id, boolean fetch);
 
-    Optional<EMessage> getMessageOptional(Long id, boolean fetch);
+  Optional<EMessage> getMessageOptional(Long id, boolean fetch);
 
-    EMessage getUpdatedMessage(Long id, boolean fetch);
+  EMessage getUpdatedMessage(Long id, boolean fetch);
 
-    EMessage getUpdatedMessage(Long id, Integer step, LocalDateTime executionTime);
+  EMessage getUpdatedMessage(Long id, Integer step, LocalDateTime executionTime);
 
-    EMessage getMessageByTgExternalId(Long externalId, Long userId);
+  EMessage getMessageByTgExternalId(Long externalId, Long userId);
 
+  void deleteMessage(Long id, Long chatId);
 
-    void deleteMessage(Long id, Long chatId);
+  DataMessageCategoryProj getMessageAndCategoryCount(Long ownerId);
 
-    DataMessageCategoryProj getMessageAndCategoryCount(Long ownerId);
-
-    EMessage restartMessageAndSchedule(Long messageId, Long chatId);
+  EMessage restartMessageAndSchedule(Long messageId, Long chatId);
 }

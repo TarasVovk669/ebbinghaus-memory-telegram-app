@@ -463,7 +463,7 @@ public class KeyboardServiceImpl implements KeyboardService {
 
   @Override
   public ArrayList<InlineKeyboardButton> getNavigationButtons(
-          int page, int size, Page<?> messages, String operation, InputUserData inputUserData) {
+      int page, int size, Page<?> messages, String operation, InputUserData inputUserData) {
     var navigationButtons = new ArrayList<InlineKeyboardButton>();
     if (page != 0) {
       var callbackDataMap =
@@ -483,8 +483,8 @@ public class KeyboardServiceImpl implements KeyboardService {
       navigationButtons.add(
           InlineKeyboardButton.builder()
               .text(
-                  messageSourceService
-                      .getMessage("messages.navigation.previous", inputUserData.getLanguageCode()))
+                  messageSourceService.getMessage(
+                      "messages.navigation.previous", inputUserData.getLanguageCode()))
               .callbackData(doTry(() -> objectMapper.writeValueAsString(callbackDataMap)))
               .build());
     }
@@ -506,8 +506,8 @@ public class KeyboardServiceImpl implements KeyboardService {
       navigationButtons.add(
           InlineKeyboardButton.builder()
               .text(
-                 messageSourceService
-                      .getMessage("messages.navigation.next", inputUserData.getLanguageCode()))
+                  messageSourceService.getMessage(
+                      "messages.navigation.next", inputUserData.getLanguageCode()))
               .callbackData(doTry(() -> objectMapper.writeValueAsString(callbackDataMap)))
               .build());
     }
@@ -516,8 +516,8 @@ public class KeyboardServiceImpl implements KeyboardService {
       navigationButtons.add(
           InlineKeyboardButton.builder()
               .text(
-                  messageSourceService
-                      .getMessage("messages.navigation.back", inputUserData.getLanguageCode()))
+                  messageSourceService.getMessage(
+                      "messages.navigation.back", inputUserData.getLanguageCode()))
               .callbackData(
                   doTry(
                       () ->

@@ -5,10 +5,11 @@ import com.ebbinghaus.memory.app.model.QuizCount;
 
 public interface QuizService {
 
-    void process(InputUserData userData);
+  void process(InputUserData userData);
 
-    void answeredQuestion(InputUserData userData);
-    void getNextQuestion(InputUserData userData, Long quizId);
+  void answeredQuestion(InputUserData userData);
 
-    QuizCount countQuizzes(Long id);
+  void getNextQuestion(InputUserData userData, Long quizId);
+
+  QuizCount countQuizzes(Long id);
 }

@@ -9,8 +9,8 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 @Configuration
 public class TelegramConfig {
 
-    @Bean
-    public TelegramClient telegramClient(@Value("${bot.token}") String token) {
-        return new OkHttpTelegramClient(token);
-    }
+  @Bean
+  public TelegramClient telegramClient(@Value("${bot.token}") String token) {
+    return new OkHttpTelegramClient(token);
+  }
 }
