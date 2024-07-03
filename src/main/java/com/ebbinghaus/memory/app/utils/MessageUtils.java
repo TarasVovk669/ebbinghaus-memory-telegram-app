@@ -1,15 +1,19 @@
 package com.ebbinghaus.memory.app.utils;
 
+import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.domain.EMessageEntity;
+import com.ebbinghaus.memory.app.domain.FileType;
+import com.ebbinghaus.memory.app.model.MessageType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
+import org.telegram.telegrambots.meta.api.objects.message.Message;
 
 import java.util.*;
 
 import static com.ebbinghaus.memory.app.utils.Constants.BOLD_STYLE;
 import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
 
-public class MessageUtil {
+public class MessageUtils {
 
     public static List<MessageEntity> manageMessageEntitiesLongMessage(
             Collection<String> messageEntities, String messageString, boolean addSuffix, String suffixValue, ObjectMapper objectMapper) {
@@ -57,5 +61,33 @@ public class MessageUtil {
                                 })
                                 .toList())
                 .orElse(Collections.emptyList());
+    }
+
+    public static MessageType manageMsgType(Message message) {
+        if (message.hasText()) {
+            return MessageType.SMPL;
+        } else if (null != message.getPhoto() && !message.getPhoto().isEmpty()) {
+            return MessageType.IMG;
+        } else if (null != message.getDocument()) {
+            return MessageType.DOC;
+        } else if (null != message.getVideo()) {
+            return MessageType.VIDEO;
+        } else {
+            throw new RuntimeException("Invalid msg_type");
+        }
+    }
+
+    public static MessageType manageMsgType(EMessage message) {
+        if (message.getFile() == null) {
+            return MessageType.SMPL;
+        } else if (message.getFile().getFileType().equals(FileType.PHOTO)) {
+            return MessageType.IMG;
+        } else if (message.getFile().getFileType().equals(FileType.DOCUMENT)) {
+            return MessageType.DOC;
+        } else if (message.getFile().getFileType().equals(FileType.VIDEO)) {
+            return MessageType.VIDEO;
+        } else {
+            throw new RuntimeException("Invalid msg_type");
+        }
     }
 }

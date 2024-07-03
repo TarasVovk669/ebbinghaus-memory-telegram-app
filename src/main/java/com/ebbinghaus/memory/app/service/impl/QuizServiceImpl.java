@@ -1,6 +1,5 @@
 package com.ebbinghaus.memory.app.service.impl;
 
-import com.ebbinghaus.memory.app.bot.KeyboardFactoryService;
 import com.ebbinghaus.memory.app.domain.quiz.QuestionStatus;
 import com.ebbinghaus.memory.app.domain.quiz.Quiz;
 import com.ebbinghaus.memory.app.domain.quiz.QuizStatus;
@@ -45,7 +44,7 @@ public class QuizServiceImpl implements QuizService {
     private final TelegramClient telegramClient;
     private final QuizRepository quizRepository;
     private final MessageService messageService;
-    private final KeyboardFactoryService factoryService;
+    private final KeyboardServiceImpl factoryService;
     private final MessageSourceService messageSourceService;
     private final QuizQuestionRepository quizQuestionRepository;
 

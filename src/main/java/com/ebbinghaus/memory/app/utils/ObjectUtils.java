@@ -1,8 +1,12 @@
 package com.ebbinghaus.memory.app.utils;
 
+import com.ebbinghaus.memory.app.domain.EMessage;
+import com.ebbinghaus.memory.app.domain.FileType;
 import com.ebbinghaus.memory.app.exception.TelegramCallException;
+import com.ebbinghaus.memory.app.model.MessageType;
 import com.ebbinghaus.memory.app.utils.function.ThrowingRunnable;
 import org.springframework.util.function.ThrowingSupplier;
+import org.telegram.telegrambots.meta.api.objects.message.Message;
 
 import java.util.Optional;
 
@@ -15,7 +19,6 @@ public class ObjectUtils {
                 .map(input -> {
                     int spaceIndex = input.indexOf('\u00A0');
                     return spaceIndex != -1 ? input.substring(0, spaceIndex + 1) : EMPTY_STRING;
-
                 })
                 .orElse(EMPTY_STRING);
 

@@ -1,6 +1,6 @@
 package com.ebbinghaus.memory.app.model;
 
-import com.ebbinghaus.memory.app.bot.KeyboardFactoryService;
+import com.ebbinghaus.memory.app.service.impl.KeyboardServiceImpl;
 import com.ebbinghaus.memory.app.domain.File;
 import com.ebbinghaus.memory.app.service.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,16 +32,6 @@ public class InputUserData {
     private Map<String, String> callBackData;
     private List<MessageEntity> messageEntities;
 
-    private UserService userService;
-    private QuizService quizService;
-    private ObjectMapper objectMapper;
-    private MessageService messageService;
-    private TelegramClient telegramClient;
-    private CategoryService categoryService;
-    private SchedulerService schedulerService;
-    private MessageSourceService messageSourceService;
-    private KeyboardFactoryService keyboardFactoryService;
-    private ChatMessageStateService chatMessageStateService;
 
 
 
