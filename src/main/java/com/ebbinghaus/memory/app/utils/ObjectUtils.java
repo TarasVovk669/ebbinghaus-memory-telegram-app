@@ -5,9 +5,9 @@ import com.ebbinghaus.memory.app.utils.function.ThrowingRunnable;
 import java.util.Optional;
 import org.springframework.util.function.ThrowingSupplier;
 
-public class ObjectUtils {
+import static com.ebbinghaus.memory.app.utils.Constants.EMPTY_STRING;
 
-  public static final String EMPTY_STRING = "";
+public class ObjectUtils {
 
   public static String extractSubstringForButton(String target) {
     return Optional.ofNullable(target)

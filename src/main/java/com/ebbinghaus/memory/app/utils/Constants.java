@@ -10,6 +10,7 @@ import org.springframework.util.ConcurrentReferenceHashMap;
 
 public class Constants {
 
+  public static final String EMPTY_STRING = "";
   public static final String DEFAULT_LANGUAGE_CODE = "en";
   public static final int DEFAULT_DATA_PAGE_SIZE = 5;
   public static final int DEFAULT_CATEGORY_PAGE_SIZE = 5;
