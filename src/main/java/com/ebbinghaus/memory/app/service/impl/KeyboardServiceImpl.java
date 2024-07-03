@@ -1,11 +1,15 @@
 package com.ebbinghaus.memory.app.service.impl;
 
+import static com.ebbinghaus.memory.app.utils.Constants.*;
+import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
+
 import com.ebbinghaus.memory.app.domain.quiz.QuestionType;
 import com.ebbinghaus.memory.app.domain.quiz.QuizQuestion;
 import com.ebbinghaus.memory.app.model.InputUserData;
 import com.ebbinghaus.memory.app.service.KeyboardService;
 import com.ebbinghaus.memory.app.service.MessageSourceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -16,11 +20,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-
-import java.util.*;
-
-import static com.ebbinghaus.memory.app.utils.Constants.*;
-import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
 
 @Service
 @AllArgsConstructor

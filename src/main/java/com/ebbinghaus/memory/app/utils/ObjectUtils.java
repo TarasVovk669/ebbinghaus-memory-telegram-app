@@ -1,14 +1,9 @@
 package com.ebbinghaus.memory.app.utils;
 
-import com.ebbinghaus.memory.app.domain.EMessage;
-import com.ebbinghaus.memory.app.domain.FileType;
 import com.ebbinghaus.memory.app.exception.TelegramCallException;
-import com.ebbinghaus.memory.app.model.MessageType;
 import com.ebbinghaus.memory.app.utils.function.ThrowingRunnable;
-import org.springframework.util.function.ThrowingSupplier;
-import org.telegram.telegrambots.meta.api.objects.message.Message;
-
 import java.util.Optional;
+import org.springframework.util.function.ThrowingSupplier;
 
 public class ObjectUtils {
 

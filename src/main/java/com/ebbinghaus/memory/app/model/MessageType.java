@@ -1,7 +1,10 @@
 package com.ebbinghaus.memory.app.model;
 
+import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTryTgCall;
+
 import com.ebbinghaus.memory.app.domain.File;
 import com.ebbinghaus.memory.app.domain.FileType;
+import java.util.List;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -14,10 +17,6 @@ import org.telegram.telegrambots.meta.api.objects.media.InputMediaDocument;
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
-
-import java.util.List;
-
-import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTryTgCall;
 
 public enum MessageType {
     SMPL {

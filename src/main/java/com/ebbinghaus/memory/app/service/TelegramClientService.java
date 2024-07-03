@@ -3,16 +3,14 @@ package com.ebbinghaus.memory.app.service;
 import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.model.MessageDataRequest;
 import com.ebbinghaus.memory.app.model.MessageType;
-import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethodMessage;
-import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethodSerializable;
+import java.util.Collection;
+import java.util.List;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
-import java.util.Collection;
-import java.util.List;
 
 public interface TelegramClientService {
 
@@ -49,4 +47,6 @@ public interface TelegramClientService {
   Message sendMessage(MessageType messageType, MessageDataRequest build);
 
   void sendEditMessage(MessageType messageType, MessageDataRequest request);
+
+  void sendEditMessage(EditMessageText editMessage) throws TelegramApiException;
 }

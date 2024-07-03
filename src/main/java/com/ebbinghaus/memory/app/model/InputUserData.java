@@ -1,18 +1,14 @@
 package com.ebbinghaus.memory.app.model;
 
-import com.ebbinghaus.memory.app.service.impl.KeyboardServiceImpl;
 import com.ebbinghaus.memory.app.domain.File;
 import com.ebbinghaus.memory.app.service.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.generics.TelegramClient;
-
-import java.util.List;
-import java.util.Map;
 
 @Data
 @Builder

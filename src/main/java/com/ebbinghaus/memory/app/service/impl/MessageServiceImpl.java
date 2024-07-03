@@ -1,5 +1,8 @@
 package com.ebbinghaus.memory.app.service.impl;
 
+import static com.ebbinghaus.memory.app.utils.DateUtils.calculateNextExecutionTime;
+import static java.time.ZoneOffset.UTC;
+
 import com.ebbinghaus.memory.app.domain.Category;
 import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.domain.EMessageCategory;
@@ -14,6 +17,9 @@ import com.ebbinghaus.memory.app.service.CategoryService;
 import com.ebbinghaus.memory.app.service.MessageService;
 import com.ebbinghaus.memory.app.service.UtilityService;
 import jakarta.persistence.EntityNotFoundException;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -26,13 +32,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.ebbinghaus.memory.app.utils.DateUtils.calculateNextExecutionTime;
-import static java.time.ZoneOffset.UTC;
 
 @Service
 @AllArgsConstructor

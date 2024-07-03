@@ -1,14 +1,13 @@
 package com.ebbinghaus.memory.app.model;
 
 import com.ebbinghaus.memory.app.domain.File;
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-
-import java.util.List;
 
 @Data
 @Builder

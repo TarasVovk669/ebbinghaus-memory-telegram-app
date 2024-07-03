@@ -1,7 +1,6 @@
 package com.ebbinghaus.memory.app.service;
 
 import com.ebbinghaus.memory.app.model.UserState;
-
 import java.util.Collection;
 import java.util.Set;
 

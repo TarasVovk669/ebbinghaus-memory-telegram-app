@@ -2,12 +2,11 @@ package com.ebbinghaus.memory.app.utils;
 
 import com.ebbinghaus.memory.app.model.LanguageData;
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.springframework.util.ConcurrentReferenceHashMap;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.springframework.util.ConcurrentReferenceHashMap;
 
 public class Constants {
 

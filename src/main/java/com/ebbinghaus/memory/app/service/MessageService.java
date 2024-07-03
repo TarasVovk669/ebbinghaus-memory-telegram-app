@@ -3,11 +3,10 @@ package com.ebbinghaus.memory.app.service;
 import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.model.MessageTuple;
 import com.ebbinghaus.memory.app.model.proj.DataMessageCategoryProj;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
-
 import java.time.LocalDateTime;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 
 public interface MessageService {
 

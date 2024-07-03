@@ -1,12 +1,11 @@
 package com.ebbinghaus.memory.app.utils;
 
+import static com.ebbinghaus.memory.app.utils.Constants.*;
+
 import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.service.MessageSourceService;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
-
-import static com.ebbinghaus.memory.app.utils.Constants.*;
 
 public class DateUtils {
 

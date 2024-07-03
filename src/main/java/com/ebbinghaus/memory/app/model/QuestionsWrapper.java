@@ -1,8 +1,7 @@
 package com.ebbinghaus.memory.app.model;
 
-import lombok.Data;
-
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class QuestionsWrapper {

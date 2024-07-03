@@ -1,10 +1,17 @@
 package com.ebbinghaus.memory.app.service.impl;
 
+import static com.ebbinghaus.memory.app.model.QuizManageStatus.*;
+import static com.ebbinghaus.memory.app.utils.Constants.PROMPT;
+import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
+import static java.time.ZoneOffset.UTC;
+
 import com.ebbinghaus.memory.app.domain.quiz.QuizQuestion;
 import com.ebbinghaus.memory.app.model.AiQuestionTuple;
 import com.ebbinghaus.memory.app.model.QuestionsWrapper;
 import com.ebbinghaus.memory.app.service.AiService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,14 +19,6 @@ import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
-
-import java.io.IOException;
-import java.time.LocalDateTime;
-
-import static com.ebbinghaus.memory.app.model.QuizManageStatus.*;
-import static com.ebbinghaus.memory.app.utils.Constants.PROMPT;
-import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
-import static java.time.ZoneOffset.UTC;
 
 @Service
 @RequiredArgsConstructor

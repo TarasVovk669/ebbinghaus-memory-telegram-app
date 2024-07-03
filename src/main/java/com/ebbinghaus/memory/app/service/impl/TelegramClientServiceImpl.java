@@ -1,11 +1,19 @@
 package com.ebbinghaus.memory.app.service.impl;
 
+import static com.ebbinghaus.memory.app.utils.Constants.MARKDOWN;
+import static com.ebbinghaus.memory.app.utils.Constants.MESSAGE_CAN_T_BE_DELETED_FOR_EVERYONE;
+import static com.ebbinghaus.memory.app.utils.MessageUtils.manageMsgType;
+import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTryTgCall;
+
 import com.ebbinghaus.memory.app.bot.MemoryBot;
 import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.model.MessageDataRequest;
 import com.ebbinghaus.memory.app.model.MessageType;
 import com.ebbinghaus.memory.app.service.MessageSourceService;
 import com.ebbinghaus.memory.app.service.TelegramClientService;
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,15 +30,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.List;
-
-import static com.ebbinghaus.memory.app.utils.Constants.MARKDOWN;
-import static com.ebbinghaus.memory.app.utils.Constants.MESSAGE_CAN_T_BE_DELETED_FOR_EVERYONE;
-import static com.ebbinghaus.memory.app.utils.MessageUtils.manageMsgType;
-import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTryTgCall;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +48,11 @@ public class TelegramClientServiceImpl implements TelegramClientService {
   @Override
   public void sendEditMessage(MessageType messageType, MessageDataRequest request) {
     messageType.editMessage(request, telegramClient);
+  }
+
+  @Override
+  public void sendEditMessage(EditMessageText editMessage) throws TelegramApiException {
+    telegramClient.execute(editMessage);
   }
 
   @Override

@@ -1,5 +1,12 @@
 package com.ebbinghaus.memory.app.service.impl;
 
+import static com.ebbinghaus.memory.app.utils.Constants.*;
+import static com.ebbinghaus.memory.app.utils.MessageUtils.manageMessageEntitiesShortMessage;
+import static com.ebbinghaus.memory.app.utils.MessageUtils.manageMsgType;
+import static com.ebbinghaus.memory.app.utils.MessageUtils.parseMessage;
+import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
+import static java.time.ZoneOffset.UTC;
+
 import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.domain.ScheduleMessageErrorQueue;
 import com.ebbinghaus.memory.app.exception.TelegramCallException;
@@ -8,6 +15,9 @@ import com.ebbinghaus.memory.app.model.MessageDataRequest;
 import com.ebbinghaus.memory.app.model.ScheduleResultTuple;
 import com.ebbinghaus.memory.app.service.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.quartz.*;
@@ -17,17 +27,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.Date;
-
-import static com.ebbinghaus.memory.app.bot.MemoryBot.parseMessage;
-import static com.ebbinghaus.memory.app.utils.Constants.*;
-import static com.ebbinghaus.memory.app.utils.MessageUtils.manageMessageEntitiesShortMessage;
-import static com.ebbinghaus.memory.app.utils.MessageUtils.manageMsgType;
-import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
-import static java.time.ZoneOffset.UTC;
 
 @Component
 @RequiredArgsConstructor

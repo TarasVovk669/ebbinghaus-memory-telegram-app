@@ -1,11 +1,17 @@
 package com.ebbinghaus.memory.app.service.impl;
 
+import static com.ebbinghaus.memory.app.utils.Constants.AVAILABLE_LANGUAGES_MAP;
+import static com.ebbinghaus.memory.app.utils.Constants.DEFAULT_LANGUAGE_CODE;
+import static java.time.ZoneOffset.UTC;
+
 import com.ebbinghaus.memory.app.domain.EUser;
 import com.ebbinghaus.memory.app.domain.EUserState;
 import com.ebbinghaus.memory.app.model.UserState;
 import com.ebbinghaus.memory.app.repository.UserRepository;
 import com.ebbinghaus.memory.app.repository.UserStateRepository;
 import com.ebbinghaus.memory.app.service.UserService;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,13 +21,6 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.User;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-import static com.ebbinghaus.memory.app.utils.Constants.AVAILABLE_LANGUAGES_MAP;
-import static com.ebbinghaus.memory.app.utils.Constants.DEFAULT_LANGUAGE_CODE;
-import static java.time.ZoneOffset.UTC;
 
 @Service
 @AllArgsConstructor

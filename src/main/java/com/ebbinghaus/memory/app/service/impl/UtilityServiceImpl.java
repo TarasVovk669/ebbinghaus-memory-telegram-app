@@ -1,19 +1,18 @@
 package com.ebbinghaus.memory.app.service.impl;
 
+import static com.ebbinghaus.memory.app.utils.Constants.JOBS_GROUP;
+import static com.ebbinghaus.memory.app.utils.Constants.TRIGGERS_GROUP;
+import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
+import static java.time.ZoneOffset.UTC;
+
 import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.service.UtilityService;
+import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.Date;
-
-import static com.ebbinghaus.memory.app.utils.Constants.JOBS_GROUP;
-import static com.ebbinghaus.memory.app.utils.Constants.TRIGGERS_GROUP;
-import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
-import static java.time.ZoneOffset.UTC;
 
 @Component
 @RequiredArgsConstructor

@@ -2,14 +2,13 @@ package com.ebbinghaus.memory.app.domain;
 
 import com.ebbinghaus.memory.app.domain.embedded.EMessageStateId;
 import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Data
 @Builder

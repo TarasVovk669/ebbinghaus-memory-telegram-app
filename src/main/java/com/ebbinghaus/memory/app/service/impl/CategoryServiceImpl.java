@@ -5,6 +5,8 @@ import com.ebbinghaus.memory.app.model.CategoryMessageCount;
 import com.ebbinghaus.memory.app.model.proj.CategoryMessageCountProj;
 import com.ebbinghaus.memory.app.repository.CategoryRepository;
 import com.ebbinghaus.memory.app.service.CategoryService;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +16,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor

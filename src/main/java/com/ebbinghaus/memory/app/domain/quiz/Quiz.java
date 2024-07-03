@@ -1,12 +1,11 @@
 package com.ebbinghaus.memory.app.domain.quiz;
 
 import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.Accessors;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
+import lombok.experimental.Accessors;
 
 @Data
 @Builder
