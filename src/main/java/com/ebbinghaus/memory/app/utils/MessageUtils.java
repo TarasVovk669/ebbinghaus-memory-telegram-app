@@ -82,31 +82,22 @@ public class MessageUtils {
   }
 
   public static MessageType manageMsgType(Message message) {
-    if (message.hasText()) {
-      return MessageType.SMPL;
-    } else if (null != message.getPhoto() && !message.getPhoto().isEmpty()) {
-      return MessageType.IMG;
-    } else if (null != message.getDocument()) {
-      return MessageType.DOC;
-    } else if (null != message.getVideo()) {
-      return MessageType.VIDEO;
-    } else {
-      throw new RuntimeException("Invalid msg_type");
-    }
+    return switch (message) {
+      case Message m when m.hasText() -> MessageType.SMPL;
+      case Message m when m.getPhoto() != null && !m.getPhoto().isEmpty() -> MessageType.IMG;
+      case Message m when m.getDocument() != null -> MessageType.DOC;
+      case Message m when m.getVideo() != null -> MessageType.VIDEO;
+      default -> throw new RuntimeException("Invalid msg_type");
+    };
   }
 
   public static MessageType manageMsgType(EMessage message) {
-    if (message.getFile() == null) {
-      return MessageType.SMPL;
-    } else if (message.getFile().getFileType().equals(FileType.PHOTO)) {
-      return MessageType.IMG;
-    } else if (message.getFile().getFileType().equals(FileType.DOCUMENT)) {
-      return MessageType.DOC;
-    } else if (message.getFile().getFileType().equals(FileType.VIDEO)) {
-      return MessageType.VIDEO;
-    } else {
-      throw new RuntimeException("Invalid msg_type");
-    }
+    return switch (message.getFile() == null ? null : message.getFile().getFileType()) {
+      case null -> MessageType.SMPL;
+      case FileType.PHOTO -> MessageType.IMG;
+      case FileType.DOCUMENT -> MessageType.DOC;
+      case FileType.VIDEO -> MessageType.VIDEO;
+    };
   }
 
   public static String parseMessage(

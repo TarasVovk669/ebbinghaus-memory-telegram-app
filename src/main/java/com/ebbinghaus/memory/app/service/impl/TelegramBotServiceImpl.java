@@ -23,11 +23,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
@@ -47,6 +49,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
   private static final Map<UserState, Function<InputUserData, Boolean>> functionUserStateMap =
       new HashMap<>();
 
+  private Executor quizTaskExecutor;
   private QuizService quizService;
   private UserService userService;
   private ObjectMapper objectMapper;
@@ -59,6 +62,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
   private ChatMessageStateService chatMessageStateService;
 
   public TelegramBotServiceImpl(
+      @Qualifier("quizTaskExecutor") Executor quizTaskExecutor,
       QuizService quizService,
       UserService userService,
       MessageService messageService,
@@ -69,6 +73,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
       MessageSourceService messageSourceService,
       KeyboardService keyboardService,
       TelegramClientService telegramClientService) {
+    this.quizTaskExecutor = quizTaskExecutor;
     this.quizService = quizService;
     this.userService = userService;
     this.objectMapper = objectMapper;
@@ -747,7 +752,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
                 .messageId(userData.getMessageId())
                 .build());
 
-        quizService.process(userData);
+        quizTaskExecutor.execute(() -> quizService.process(userData));
         return Boolean.TRUE;
       };
 

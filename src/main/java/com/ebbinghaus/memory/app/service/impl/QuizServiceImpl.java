@@ -24,7 +24,6 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 
@@ -45,7 +44,6 @@ public class QuizServiceImpl implements QuizService {
   private final QuizQuestionRepository quizQuestionRepository;
 
   @Override
-  @Async
   public void process(InputUserData userData) {
     log.info("Process quiz for user with id: {}", userData.getUser().getId());
 
@@ -54,12 +52,12 @@ public class QuizServiceImpl implements QuizService {
         manageUserQuiz(userData.getUser().getId(), messageId, userData.getLanguageCode());
 
     switch (quizTuple.status()) {
-      case BAD_QUESTION_CANT_UNDERSTAND:
-      case RETRIES_LIMIT:
-      case DEFAULT:
-      case TOO_SHORT:
-      case MAX_PER_MESSAGE:
-      case MAX_PER_DAY_LIMIT_STATUS:
+      case BAD_QUESTION_CANT_UNDERSTAND,
+          RETRIES_LIMIT,
+          DEFAULT,
+          TOO_SHORT,
+          MAX_PER_MESSAGE,
+          MAX_PER_DAY_LIMIT_STATUS -> {
         {
           doTry(
               () ->
@@ -76,17 +74,14 @@ public class QuizServiceImpl implements QuizService {
                               factoryService.getSingleBackFullMessageKeyboard(
                                   userData.getLanguageCode(), messageId))
                           .build()));
-          break;
         }
-      case SUCCESS:
-        {
-          var quiz = quizTuple.quiz();
-          log.info("Get last question from quiz by id: {}", quiz.getId());
-          manageQuizQuestion(userData, quiz.getId(), quiz.getMessageId());
-          break;
-        }
-      default:
-        break;
+      }
+      case SUCCESS -> {
+        var quiz = quizTuple.quiz();
+        log.info("Get last question from quiz by id: {}", quiz.getId());
+        manageQuizQuestion(userData, quiz.getId(), quiz.getMessageId());
+      }
+      default -> {}
     }
   }
 
