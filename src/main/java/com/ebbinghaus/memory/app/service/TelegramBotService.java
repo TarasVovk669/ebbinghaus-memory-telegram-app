@@ -7,5 +7,5 @@ public interface TelegramBotService {
 
   void processButtonMessageCallback(String command, InputUserData inputUserData);
 
-  void processTextInputCallback(InputUserData inputUserData);
+  void processInputCallback(InputUserData inputUserData);
 }

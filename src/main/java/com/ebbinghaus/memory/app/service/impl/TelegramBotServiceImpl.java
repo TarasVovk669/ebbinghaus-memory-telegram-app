@@ -130,7 +130,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
   }
 
   @Override
-  public void processTextInputCallback(InputUserData inputUserData) {
+  public void processInputCallback(InputUserData inputUserData) {
     Optional.ofNullable(inputUserData.getMessageText())
         .ifPresentOrElse(
             messageText ->
