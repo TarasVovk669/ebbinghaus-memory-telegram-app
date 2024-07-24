@@ -135,7 +135,11 @@ public class TelegramClientServiceImpl implements TelegramClientService {
   @Override
   public void deleteMessage(Long chatId, int messageId) {
     try {
-      telegramClient.execute(DeleteMessage.builder().chatId(chatId).messageId(messageId).build());
+      telegramClient.execute(
+              DeleteMessage.builder()
+                      .chatId(chatId)
+                      .messageId(messageId)
+                      .build());
     } catch (TelegramApiException e) {
       log.warn(
           "Error to delete messages with chat_id:{} and message_id: {} and error_message: {}",
@@ -178,7 +182,10 @@ public class TelegramClientServiceImpl implements TelegramClientService {
   public void deleteMessages(Long chatId, Collection<Integer> messageIds) {
     try {
       telegramClient.execute(
-          DeleteMessages.builder().chatId(chatId).messageIds(messageIds).build());
+          DeleteMessages.builder()
+                  .chatId(chatId)
+                  .messageIds(messageIds)
+                  .build());
     } catch (TelegramApiException e) {
       log.warn(
           "Error to delete messages with chat_id:{} and message_ids: {} and error_message: {}",
