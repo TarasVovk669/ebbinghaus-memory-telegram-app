@@ -29,6 +29,6 @@ The main purpose of this project is to share the experience of developing Memory
 
 For more information and detailed guides, check out these articles:
 
-1. [](#)
+1. [Creating a Telegram bot on Spring Boot: Personal experience and recommendations. Part 1](https://medium.com/@ia_taras/creating-a-telegram-bot-on-spring-boot-personal-experience-and-recommendations-part-1-9ab3bf292e7f)
 2. [](#)
 3. [](#)
