@@ -236,7 +236,6 @@ public class QuizServiceImpl implements QuizService {
     LocalDateTime cutoffDateTime = now.minusHours(24);
     var quizzesCount = quizRepository.findAllRecentQuizzesByUserId(userId, cutoffDateTime, now);
 
-    System.out.println(quizzesCount);
     if (quizzesCount >= DEFAULT_QUIZ_PAGE_SIZE) {
       return new QuizTuple(MAX_PER_DAY_LIMIT_STATUS, null);
     }
