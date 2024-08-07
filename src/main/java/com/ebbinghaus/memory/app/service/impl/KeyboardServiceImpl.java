@@ -476,6 +476,7 @@ public class KeyboardServiceImpl implements KeyboardService {
       if (null != inputUserData.getCallBackData()
           && inputUserData.getCallBackData().containsKey(IS_BACK)) {
         callbackDataMap.put(IS_BACK, inputUserData.getCallBackData().get(IS_BACK));
+        callbackDataMap.put(CATEGORY_ID, inputUserData.getCallBackData().get(CATEGORY_ID));
         callbackDataMap.put(CATEGORY_PAGE, inputUserData.getCallBackData().get(CATEGORY_PAGE));
         callbackDataMap.put(CATEGORY_SIZE, inputUserData.getCallBackData().get(CATEGORY_SIZE));
       }
@@ -499,6 +500,7 @@ public class KeyboardServiceImpl implements KeyboardService {
       if (null != inputUserData.getCallBackData()
           && inputUserData.getCallBackData().containsKey(IS_BACK)) {
         callbackDataMap.put(IS_BACK, inputUserData.getCallBackData().get(IS_BACK));
+        callbackDataMap.put(CATEGORY_ID, inputUserData.getCallBackData().get(CATEGORY_ID));
         callbackDataMap.put(CATEGORY_PAGE, inputUserData.getCallBackData().get(CATEGORY_PAGE));
         callbackDataMap.put(CATEGORY_SIZE, inputUserData.getCallBackData().get(CATEGORY_SIZE));
       }
