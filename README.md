@@ -31,4 +31,4 @@ For more information and detailed guides, check out these articles:
 
 1. [Creating a Telegram bot on Spring Boot: Personal experience and recommendations. Part 1](https://medium.com/@ia_taras/creating-a-telegram-bot-on-spring-boot-personal-experience-and-recommendations-part-1-9ab3bf292e7f)
 2. [Creating a Telegram bot on Spring Boot: Personal experience and recommendations. Part 2](https://medium.com/@ia_taras/creating-a-telegram-bot-on-spring-boot-personal-experience-and-recommendations-part-2-73cdbc50e68d)
-3. [](#)
+3. [Creating a Telegram bot on Spring Boot: Personal experience and recommendations. Part 3](https://medium.com/@ia_taras/creating-a-telegram-bot-on-spring-boot-personal-experience-and-recommendations-part-3-3e1072f84960)
