@@ -11,7 +11,9 @@ spring:
       chat:
         options:
           model: ${AI_MODEL}
-          response-format: json_object
+          response-format:
+            type: json_object
+
   flyway:
     schemas:
       - memorybot

@@ -1,6 +1,6 @@
 package com.ebbinghaus.memory.app.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 public class ObjectMapperConfig {
 
   @Bean
-  public ObjectMapper objectMapper() {
-    return new ObjectMapper();
+  public Jackson2ObjectMapperBuilderCustomizer jsonCustomizer() {
+    return builder -> builder.failOnUnknownProperties(false);
   }
 }
