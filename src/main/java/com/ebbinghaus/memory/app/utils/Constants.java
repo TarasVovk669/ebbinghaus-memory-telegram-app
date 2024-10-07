@@ -109,33 +109,55 @@ public class Constants {
 
   public static final String PROMPT =
       """
-            Create a challenging quiz from the given text, returning a JSON object with 10 questions.
-            Each question must include:
+            **Objective:**
+            Generate a challenging quiz based on the provided `input_text`, returning a JSON object with exactly 10 questions.
+            **Each question must include:**
+            - `type`: `"YES_NO"`, `"SELECT"`, or `"MISSING"`.
+            - `text`: The question text.
+            - `variants`: The answer options.
+            - `correct_answer`: The correct answer key.
+            ---
+            **Instructions:**
+            1. **Question Generation:**
+               - Analyze `input_text` for main ideas, themes, and vocabulary.
+               - Ensure questions are challenging and relevant.
+               - Use a mix of question types.
+               - If `input_text` lacks sufficient information, generate additional relevant questions.
+            2. **Vocabulary and Contextual Learning:**
+               - If `input_text` resembles a dictionary or vocabulary list, focus on vocabulary enhancement.
+               - Provide sentences where the learner fills in the blank with the correct word.
+               - Use `"MISSING"` questions with context-based options.
+            3. **Question Types and Answer Variants:**
+               - **YES_NO**:
+                 - `variants`: `{"true": "Yes", "false": "No"}`
+                 - Make questions challenging, with fewer "true" answers.
+               - **SELECT** and **MISSING**:
+                 - `variants`: `{"A": "Option 1", "B": "Option 2", "C": "Option 3", "D": "Option 4"}`
+                 - Include plausible distractors.
+            4. **Language Handling:**
+               - **Input Parameters**:
+                 - `input_text`: Text for the quiz.
+                 - `language`: User's native language.
+               - **Language Detection and Precedence**:
+                 - Detect the language of `input_text`.
+                 - If detected language differs from `language`, use `language` for quiz content.
+               - **Vocabulary Learning**:
+                 - Identify the target language if `input_text` is a vocabulary list.
+                   - Example: In "Backpedal - тормозити", "Backpedal" is the target language.
+                 - For `"MISSING"` questions, use the target language.
+                 - For other questions, use the user's native language (`language` parameter).
 
-            type: YES_NO, SELECT, MISSING
-            text: The question text
-            variants: Answer options
-            correct_answer: The correct answer
-            Questions should be difficult, relevant, and varied. Analyze the input text for main ideas and themes. If insufficient information, generate some questions independently. If vocabulary-based, include MISSING questions with context-based options.
-
-            Use the language specified in language_code.
-            Translate questions based on {input_text} language AND on {language_code} input parameter!
-            If the input text is not understandable, include "error": "BAD_QUESTION_CANT_UNDERSTAND" in the response. If the text is too short, include "error": "TOO_SHORT".
-            Response must contains ONLY "questions" OR "error"!
-
-            For answers:
-
-            YES_NO: {"true": "Yes", "false": "No"}
-            SELECT and MISSING: {"A": "element 1", "B": "element 2", "C": "element 3", "D": "element 4"}
-            Make YES_NO questions more difficult, with the frequency of true answers lower than false. If language learning is indicated, MISSING questions should be in the learning language, while the rest are in language_code.
-
-            Input parameters:
-
-            language_code: Language code for the quiz.
-            input_text: Text for the quiz
-            JSON schema for the response:
-
-            json
+            5. **Error Handling:**
+               - If `input_text` is not understandable, return `{ "error": "BAD_QUESTION_CANT_UNDERSTAND" }`.
+               - If `input_text` is too short, return `{ "error": "TOO_SHORT" }`.
+               - Response must contain only `"questions"` or `"error"`, not both.
+            ---
+            **Input Parameters:**
+            - `input_text`: The text to generate the quiz from.
+            - `language`: The user's native language (e.g., `"en"`).
+            ---
+            **JSON Response Schema:**
+            ```json
             {
               "error": "BAD_QUESTION_CANT_UNDERSTAND",
               "questions": [
@@ -159,14 +181,14 @@ public class Constants {
                 },
                 {
                   "type": "SELECT",
-                  "text": "Question text",
+                  "text": "Which element has the chemical symbol 'O'?",
                   "variants": {
-                    "A": "Option 1",
-                    "B": "Option 2",
-                    "C": "Option 3",
-                    "D": "Option 4"
+                    "A": "Gold",
+                    "B": "Oxygen",
+                    "C": "Silver",
+                    "D": "Hydrogen"
                   },
-                  "correct_answer": "A"
+                  "correct_answer": "B"
                 },
                 {
                   "type": "MISSING",
@@ -179,9 +201,17 @@ public class Constants {
                   },
                   "correct_answer": "B"
                 }
-                // 6 more questions in similar format
+                // ...6 more questions
               ]
             }
-            This is language_code: {%s} and input_text: {%s}. Return only JSON!
+            ```
+            ---
+            **Notes:**
+            - Ensure the JSON response strictly follows the schema.
+            - The `"questions"` array must contain exactly 10 questions unless an error is returned.
+            - The `correct_answer` must match one of the keys in `variants`.
+            - All quiz content must respect the language handling rules.
+            ---
+            language_code: {%s} and input_text: {%s}.
             """;
 }
