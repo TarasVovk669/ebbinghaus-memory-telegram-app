@@ -44,6 +44,7 @@ public class Constants {
   public static final String CONTACT_INFO_CALLBACK = "cic";
   public static final String QUIZ_QUESTION_CALLBACK = "qqc";
   public static final String QUIZ_NEXT_QUESTION_CALLBACK = "qnqc";
+  public static final String TEXT_TO_SPEECH_CALLBACK = "tts";
 
   public static final String UNCATEGORIZED = "#uncategorized";
   public static final String FORWARDED = "#forwarded";

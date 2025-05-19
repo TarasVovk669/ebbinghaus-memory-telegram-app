@@ -11,6 +11,8 @@ import com.ebbinghaus.memory.app.model.MessageDataRequest;
 import com.ebbinghaus.memory.app.model.MessageType;
 import com.ebbinghaus.memory.app.service.MessageSourceService;
 import com.ebbinghaus.memory.app.service.TelegramClientService;
+
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -20,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.methods.send.SendVoice;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessages;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -130,6 +133,17 @@ public class TelegramClientServiceImpl implements TelegramClientService {
                     .replyMarkup(replyKeyboard)
                     .photo(null != fileId ? new InputFile(fileId) : new InputFile(new File(url)))
                     .build()));
+  }
+
+  @Override
+  public Message sendAudioMessage(Long chatId, byte[] audioByteArray, Integer replyMessageId){
+    return doTryTgCall(() -> telegramClient.execute(
+            SendVoice.builder()
+                    .chatId(chatId)
+                    .voice(new InputFile(new ByteArrayInputStream(audioByteArray), "speech.mp3"))
+                    .replyToMessageId(replyMessageId)
+                    .build()
+    ));
   }
 
   @Override

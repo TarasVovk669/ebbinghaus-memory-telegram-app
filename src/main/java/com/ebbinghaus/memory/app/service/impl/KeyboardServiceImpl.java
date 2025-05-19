@@ -108,6 +108,19 @@ public class KeyboardServiceImpl implements KeyboardService {
     rowInline.add(
         new InlineKeyboardRow(
             InlineKeyboardButton.builder()
+                .text(messageSourceService.getMessage("messages.navigation.audio", languageCode))
+                .callbackData(
+                    doTry(
+                        () ->
+                            objectMapper.writeValueAsString(
+                                Map.ofEntries(
+                                    Map.entry(OPERATION, TEXT_TO_SPEECH_CALLBACK),
+                                    Map.entry(MESSAGE_ID, messageId)))))
+                .build()));
+
+    rowInline.add(
+        new InlineKeyboardRow(
+            InlineKeyboardButton.builder()
                 .text(messageSourceService.getMessage("messages.navigation.restart", languageCode))
                 .callbackData(
                     doTry(

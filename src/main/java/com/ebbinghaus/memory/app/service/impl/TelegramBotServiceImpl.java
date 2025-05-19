@@ -49,6 +49,8 @@ public class TelegramBotServiceImpl implements TelegramBotService {
   private static final Map<UserState, Function<InputUserData, Boolean>> functionUserStateMap =
       new HashMap<>();
 
+  private TtsService ttsService;
+  private AudioService audioService;
   private Executor quizTaskExecutor;
   private QuizService quizService;
   private UserService userService;
@@ -72,7 +74,11 @@ public class TelegramBotServiceImpl implements TelegramBotService {
       SchedulerService schedulerService,
       MessageSourceService messageSourceService,
       KeyboardService keyboardService,
-      TelegramClientService telegramClientService) {
+      TelegramClientService telegramClientService,
+      TtsService ttsService,
+      AudioService audioService) {
+    this.ttsService = ttsService;
+    this.audioService = audioService;
     this.quizTaskExecutor = quizTaskExecutor;
     this.quizService = quizService;
     this.userService = userService;
@@ -114,6 +120,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
     functionCallbackDataMap.put(CONTACT_INFO_CALLBACK, handleContactInfo);
     functionCallbackDataMap.put(QUIZ_QUESTION_CALLBACK, handleQuizQuestion);
     functionCallbackDataMap.put(QUIZ_NEXT_QUESTION_CALLBACK, handleQuizNextQuestion);
+    functionCallbackDataMap.put(TEXT_TO_SPEECH_CALLBACK, handleTextToSpeech);
 
     functionUserStateMap.put(WAIT_TEXT, handleInputText);
     functionUserStateMap.put(WAIT_FORWARDED_MESSAGE, handleInputText);
@@ -956,6 +963,29 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         quizService.getNextQuestion(userData, null);
 
         return Boolean.TRUE;
+      };
+
+  private final Function<InputUserData, Boolean> handleTextToSpeech =
+      userData -> {
+        Long messageId = Long.valueOf(userData.getMessageId());
+        if (audioService.canGenerate(userData.getUser().getId())) {
+          // todo: change all method to handle it correct
+
+          audioService.save(userData.getUser().getId(), messageId, null); // todo:change
+          var bytes = ttsService.synthesize("todo");
+          telegramClientService.sendAudioMessage(userData.getChatId(), bytes, messageId.intValue());
+
+          return Boolean.TRUE;
+        } else {
+
+          telegramClientService.sendMessage(
+              userData.getChatId(),
+              messageSourceService.getMessage(
+                  "messages.error.audio.limit", userData.getLanguageCode()),
+              keyboardService.getSingleBackFullMessageKeyboard(
+                  userData.getLanguageCode(), messageId));
+          return Boolean.FALSE;
+        }
       };
 
   private final Function<InputUserData, Boolean> handleInputText =

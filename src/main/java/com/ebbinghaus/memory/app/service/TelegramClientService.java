@@ -38,6 +38,8 @@ public interface TelegramClientService {
   Message sendPhotoMessage(
       Long chatId, String text, ReplyKeyboard replyKeyboard, String url, String fileId);
 
+  Message sendAudioMessage(Long chatId, byte[] audioByteArray, Integer replyMessageId);
+
   void deleteMessage(Long chatId, int messageId);
 
   void deleteMessage(Long chatId, int messageId, String languageCode, EMessage message);
