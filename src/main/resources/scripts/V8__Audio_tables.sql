@@ -4,6 +4,7 @@ CREATE TABLE e_audio_text (
                               id           BIGINT NOT NULL PRIMARY KEY DEFAULT nextval('e_audio_text_seq'),
                               user_id      BIGINT,
                               message_id   BIGINT,
+                              audio_id      VARCHAR(255),
                               description  VARCHAR(255),
                               created_at   TIMESTAMP
 );

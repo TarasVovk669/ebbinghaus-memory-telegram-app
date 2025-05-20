@@ -4,6 +4,8 @@ import com.ebbinghaus.memory.app.service.TtsService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.openai.OpenAiAudioSpeechModel;
+import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -18,14 +20,12 @@ public class ChatGptTtsServiceImpl implements TtsService {
 
   private static final Logger log = LoggerFactory.getLogger(ChatGptTtsServiceImpl.class);
 
+  private final OpenAiAudioSpeechModel openAiAudioSpeechModel;
+
   @Override
   public byte[] synthesize(String text) {
     log.info("Synthesizing text {}", text);
 
-    return doTry(
-        () ->
-            Files.readAllBytes(
-                Path.of(
-                    "/Users/tarasvovk/IdeaProjects/ebbinghaus-memory-telegram-app/src/main/resources/tt.ogg")));
+    return openAiAudioSpeechModel.call(text);
   }
 }

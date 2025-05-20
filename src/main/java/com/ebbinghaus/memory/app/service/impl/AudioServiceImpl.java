@@ -27,12 +27,17 @@ public class AudioServiceImpl implements AudioService {
   }
 
   @Override
-  public void save(Long userId, Long messageId, Long audioId) {
-    log.info("Saving audio with id: {} for user: {}", audioId, userId);
+  public void save(Long userId, Long messageId, String audioId) {
+    log.info(
+        "Saving audio for message_id: {} for user_id: {}, audio_id: {}",
+        messageId,
+        userId,
+        audioId);
     audioRepository.save(
         AudioText.builder()
             .userId(userId)
             .messageId(messageId)
+            .audioId(audioId)
             .createdAt(LocalDateTime.now(UTC))
             .build());
   }

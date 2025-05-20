@@ -24,6 +24,7 @@ public class AudioText {
     private Long id;
     private Long userId;
     private Long messageId;
+    private String audioId;
     private String description;
     private LocalDateTime createdAt;
 }

@@ -966,27 +966,46 @@ public class TelegramBotServiceImpl implements TelegramBotService {
       };
 
   private final Function<InputUserData, Boolean> handleTextToSpeech =
-      userData -> {
-        Long messageId = Long.valueOf(userData.getMessageId());
-        if (audioService.canGenerate(userData.getUser().getId())) {
-          // todo: change all method to handle it correct
+      userData ->
+          Optional.of(userData)
+              .filter(u -> audioService.canGenerate(userData.getUser().getId()))
+              .map(
+                  u -> {
+                    var messageId = Long.valueOf(userData.getMessageId());
+                    try {
+                      var bytes =
+                          ttsService.synthesize(
+                              messageService
+                                  .getMessage(
+                                      Long.valueOf(userData.getCallBackData().get(MESSAGE_ID)),
+                                      false)
+                                  .getText());
+                      var audioMessage =
+                          telegramClientService.sendAudioMessage(
+                              userData.getChatId(), bytes, messageId.intValue());
 
-          audioService.save(userData.getUser().getId(), messageId, null); // todo:change
-          var bytes = ttsService.synthesize("todo");
-          telegramClientService.sendAudioMessage(userData.getChatId(), bytes, messageId.intValue());
+                      audioService.save(
+                          userData.getUser().getId(),
+                          messageId,
+                          audioMessage.getVoice().getFileId());
+                    } catch (Exception e) {
+                      log.error("Error in synthesize text: ", e);
 
-          return Boolean.TRUE;
-        } else {
-
-          telegramClientService.sendMessage(
-              userData.getChatId(),
-              messageSourceService.getMessage(
-                  "messages.error.audio.limit", userData.getLanguageCode()),
-              keyboardService.getSingleBackFullMessageKeyboard(
-                  userData.getLanguageCode(), messageId));
-          return Boolean.FALSE;
-        }
-      };
+                      telegramClientService.sendMessage(
+                          userData.getChatId(),
+                          messageSourceService.getMessage(
+                              "messages.error.audio.synthesize", userData.getLanguageCode()));
+                    }
+                    return Boolean.TRUE;
+                  })
+              .orElseGet(
+                  () -> {
+                    telegramClientService.sendMessage(
+                        userData.getChatId(),
+                        messageSourceService.getMessage(
+                            "messages.error.audio.limit", userData.getLanguageCode()));
+                    return Boolean.FALSE;
+                  });
 
   private final Function<InputUserData, Boolean> handleInputText =
       userData -> {
