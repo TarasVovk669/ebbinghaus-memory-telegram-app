@@ -16,8 +16,8 @@ public class ThreadPoolConfig {
         this.threadCount = threadCount;
     }
 
-    @Bean(name = "quizTaskExecutor")
-    public Executor quizTaskExecutor() {
+    @Bean(name = "ioTaskExecutor")
+    public Executor ioTaskExecutor() {
         return Executors.newFixedThreadPool(threadCount);
     }
 }

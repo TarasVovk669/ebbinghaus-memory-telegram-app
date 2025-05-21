@@ -79,7 +79,7 @@ public class Constants {
   public static final String FIB_STEP_SECOND = "fib_step_second";
   public static final String TRIGGERS_GROUP = "message-triggers";
   public static final String JOBS_GROUP = "message-jobs";
-  public static final int MINIMUM_TEST_PASSED_LENGTH = 500;
+  public static final int MINIMUM_TEST_PASSED_LENGTH = 300;
   public static final String MESSAGE_CAN_T_BE_DELETED_FOR_EVERYONE =
       "message can't be deleted for everyone";
   public static final String MARKDOWN = "markdown";

@@ -74,7 +74,10 @@ public class KeyboardServiceImpl implements KeyboardService {
 
   @Override
   public InlineKeyboardMarkup getViewKeyboard(
-      Long messageId, String languageCode, boolean isForwardedMessage, boolean isSimpleMessage) {
+      Long messageId,
+      String languageCode,
+      boolean isForwardedMessage,
+      boolean isSimpleMessage) {
     var rowInline = new ArrayList<InlineKeyboardRow>();
 
     rowInline.add(
@@ -105,19 +108,20 @@ public class KeyboardServiceImpl implements KeyboardService {
                   .build()));
     }
 
-    rowInline.add(
-        new InlineKeyboardRow(
-            InlineKeyboardButton.builder()
-                .text(messageSourceService.getMessage("messages.navigation.audio", languageCode))
-                .callbackData(
-                    doTry(
-                        () ->
-                            objectMapper.writeValueAsString(
-                                Map.ofEntries(
-                                    Map.entry(OPERATION, TEXT_TO_SPEECH_CALLBACK),
-                                    Map.entry(MESSAGE_ID, messageId)))))
-                .build()));
-
+    if (isSimpleMessage) {
+      rowInline.add(
+          new InlineKeyboardRow(
+              InlineKeyboardButton.builder()
+                  .text(messageSourceService.getMessage("messages.navigation.audio", languageCode))
+                  .callbackData(
+                      doTry(
+                          () ->
+                              objectMapper.writeValueAsString(
+                                  Map.ofEntries(
+                                      Map.entry(OPERATION, TEXT_TO_SPEECH_CALLBACK),
+                                      Map.entry(MESSAGE_ID, messageId)))))
+                  .build()));
+    }
     rowInline.add(
         new InlineKeyboardRow(
             InlineKeyboardButton.builder()

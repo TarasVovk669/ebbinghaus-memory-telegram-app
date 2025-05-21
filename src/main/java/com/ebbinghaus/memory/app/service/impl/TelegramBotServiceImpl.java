@@ -51,7 +51,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
 
   private TtsService ttsService;
   private AudioService audioService;
-  private Executor quizTaskExecutor;
+  private Executor ioTaskExecutor;
   private QuizService quizService;
   private UserService userService;
   private ObjectMapper objectMapper;
@@ -64,7 +64,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
   private ChatMessageStateService chatMessageStateService;
 
   public TelegramBotServiceImpl(
-      @Qualifier("quizTaskExecutor") Executor quizTaskExecutor,
+      @Qualifier("ioTaskExecutor") Executor ioTaskExecutor,
       QuizService quizService,
       UserService userService,
       MessageService messageService,
@@ -79,7 +79,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
       AudioService audioService) {
     this.ttsService = ttsService;
     this.audioService = audioService;
-    this.quizTaskExecutor = quizTaskExecutor;
+    this.ioTaskExecutor = ioTaskExecutor;
     this.quizService = quizService;
     this.userService = userService;
     this.objectMapper = objectMapper;
@@ -759,7 +759,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
                 .messageId(userData.getMessageId())
                 .build());
 
-        quizTaskExecutor.execute(() -> quizService.process(userData));
+        ioTaskExecutor.execute(() -> quizService.process(userData));
         return Boolean.TRUE;
       };
 
@@ -971,31 +971,45 @@ public class TelegramBotServiceImpl implements TelegramBotService {
               .filter(u -> audioService.canGenerate(userData.getUser().getId()))
               .map(
                   u -> {
-                    var messageId = Long.valueOf(userData.getMessageId());
-                    try {
-                      var bytes =
-                          ttsService.synthesize(
-                              messageService
-                                  .getMessage(
-                                      Long.valueOf(userData.getCallBackData().get(MESSAGE_ID)),
-                                      false)
-                                  .getText());
-                      var audioMessage =
-                          telegramClientService.sendAudioMessage(
-                              userData.getChatId(), bytes, messageId.intValue());
+                    var initAudioMessage =
+                        telegramClientService.sendMessage(
+                            userData.getChatId(),
+                            messageSourceService.getMessage(
+                                "messages.audio.synthesize.in-progress",
+                                userData.getLanguageCode()));
 
-                      audioService.save(
-                          userData.getUser().getId(),
-                          messageId,
-                          audioMessage.getVoice().getFileId());
-                    } catch (Exception e) {
-                      log.error("Error in synthesize text: ", e);
+                    ioTaskExecutor.execute(
+                        () -> {
+                          var messageId = Long.valueOf(userData.getMessageId());
+                          try {
+                            var bytes =
+                                ttsService.synthesize(
+                                    messageService
+                                        .getMessage(
+                                            Long.valueOf(
+                                                userData.getCallBackData().get(MESSAGE_ID)),
+                                            false)
+                                        .getText());
+                            telegramClientService.deleteMessage(
+                                u.getChatId(), initAudioMessage.getMessageId());
 
-                      telegramClientService.sendMessage(
-                          userData.getChatId(),
-                          messageSourceService.getMessage(
-                              "messages.error.audio.synthesize", userData.getLanguageCode()));
-                    }
+                            var audioMessage =
+                                telegramClientService.sendAudioMessage(
+                                    userData.getChatId(), bytes, messageId.intValue());
+
+                            audioService.save(
+                                userData.getUser().getId(),
+                                messageId,
+                                audioMessage.getVoice().getFileId());
+                          } catch (Exception e) {
+                            log.error("Error in synthesize text: ", e);
+
+                            telegramClientService.sendMessage(
+                                userData.getChatId(),
+                                messageSourceService.getMessage(
+                                    "messages.error.audio.synthesize", userData.getLanguageCode()));
+                          }
+                        });
                     return Boolean.TRUE;
                   })
               .orElseGet(
