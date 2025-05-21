@@ -5,14 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.openai.OpenAiAudioSpeechModel;
-import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
 
 @Service
 @RequiredArgsConstructor

@@ -1,11 +1,10 @@
 package com.ebbinghaus.memory.app.config;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 @Configuration
 public class ThreadPoolConfig {
@@ -19,5 +18,10 @@ public class ThreadPoolConfig {
     @Bean(name = "ioTaskExecutor")
     public Executor ioTaskExecutor() {
         return Executors.newFixedThreadPool(threadCount);
+    }
+
+    @Bean(name = "virtualTaskExecutor")
+    public Executor virtualTaskExecutor() {
+        return Executors.newVirtualThreadPerTaskExecutor();
     }
 }

@@ -14,15 +14,13 @@ import static java.time.ZoneOffset.UTC;
 import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.domain.EMessageEntity;
 import com.ebbinghaus.memory.app.domain.EMessageType;
-import com.ebbinghaus.memory.app.model.InputUserData;
-import com.ebbinghaus.memory.app.model.MessageDataRequest;
-import com.ebbinghaus.memory.app.model.MessageTuple;
-import com.ebbinghaus.memory.app.model.UserState;
+import com.ebbinghaus.memory.app.model.*;
 import com.ebbinghaus.memory.app.service.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -32,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -52,6 +51,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
   private TtsService ttsService;
   private AudioService audioService;
   private Executor ioTaskExecutor;
+  private Executor virtualTaskExecutor;
   private QuizService quizService;
   private UserService userService;
   private ObjectMapper objectMapper;
@@ -65,6 +65,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
 
   public TelegramBotServiceImpl(
       @Qualifier("ioTaskExecutor") Executor ioTaskExecutor,
+      @Qualifier("virtualTaskExecutor") Executor virtualTaskExecutor,
       QuizService quizService,
       UserService userService,
       MessageService messageService,
@@ -80,6 +81,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
     this.ttsService = ttsService;
     this.audioService = audioService;
     this.ioTaskExecutor = ioTaskExecutor;
+    this.virtualTaskExecutor = virtualTaskExecutor;
     this.quizService = quizService;
     this.userService = userService;
     this.objectMapper = objectMapper;
@@ -549,29 +551,53 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         clearMessages(userData, List.of(PROFILE));
         telegramClientService.deleteMessage(userData.getChatId(), userData.getMessageId());
 
-        var messageAndCategoryCount =
-            messageService.getMessageAndCategoryCount(userData.getUser().getId());
-        var quizzesCount = quizService.countQuizzes(userData.getUser().getId());
+        var messageAndCategoryCountCF =
+            CompletableFuture.supplyAsync(
+                () -> messageService.getMessageAndCategoryCount(userData.getUser().getId()),
+                virtualTaskExecutor);
 
-        var message =
-            telegramClientService.sendMessage(
-                userData.getChatId(),
-                String.format(
-                    messageSourceService.getMessage("messages.profile", userData.getLanguageCode()),
-                    userData.getUser().getFirstName(),
-                    messageAndCategoryCount.getMessageCount(),
-                    messageAndCategoryCount.getCategoryCount(),
-                    quizzesCount.availableQuizCount(),
-                    quizzesCount.totalCountPerDay(),
-                    quizzesCount.totalFinishedQuizCount()),
-                keyboardService.getProfileKeyboard(userData.getLanguageCode()));
+        var quizzesCountCF =
+            CompletableFuture.supplyAsync(
+                () -> quizService.countQuizzes(userData.getUser().getId()), virtualTaskExecutor);
 
-        chatMessageStateService.addMessage(
-            userData.getUser().getId(),
-            userData.getChatId(),
-            PROFILE,
-            List.of(message.getMessageId()));
+        var audioCountCF =
+            CompletableFuture.supplyAsync(
+                () -> audioService.count(userData.getUser().getId()), virtualTaskExecutor);
 
+        CompletableFuture.allOf(messageAndCategoryCountCF, quizzesCountCF, audioCountCF)
+            .thenApply(
+                v -> {
+                  var messageAndCategoryCount = messageAndCategoryCountCF.join();
+                  var quizzesCount = quizzesCountCF.join();
+                  var audioCount = audioCountCF.join();
+
+                  return String.format(
+                      messageSourceService.getMessage(
+                          "messages.profile", userData.getLanguageCode()),
+                      userData.getUser().getFirstName(),
+                      messageAndCategoryCount.getMessageCount(),
+                      messageAndCategoryCount.getCategoryCount(),
+                      audioCount.currentCount(),
+                      audioCount.availableCount(),
+                      quizzesCount.availableQuizCount(),
+                      quizzesCount.totalCountPerDay(),
+                      quizzesCount.totalFinishedQuizCount());
+                })
+            .thenAcceptAsync(
+                text -> {
+                  var message =
+                      telegramClientService.sendMessage(
+                          userData.getChatId(),
+                          text,
+                          keyboardService.getProfileKeyboard(userData.getLanguageCode()));
+
+                  chatMessageStateService.addMessage(
+                      userData.getUser().getId(),
+                      userData.getChatId(),
+                      PROFILE,
+                      List.of(message.getMessageId()));
+                },
+                virtualTaskExecutor);
         return Boolean.TRUE;
       };
 
@@ -893,23 +919,48 @@ public class TelegramBotServiceImpl implements TelegramBotService {
 
   private final Function<InputUserData, Boolean> handleProfileMainMenuBack =
       userData -> {
-        var messageAndCategoryCount =
-            messageService.getMessageAndCategoryCount(userData.getUser().getId());
-        var quizzesCount = quizService.countQuizzes(userData.getUser().getId());
+        var messageAndCategoryCountCF =
+            CompletableFuture.supplyAsync(
+                () -> messageService.getMessageAndCategoryCount(userData.getUser().getId()),
+                virtualTaskExecutor);
 
-        telegramClientService.sendEditMessage(
-            userData.getChatId(),
-            String.format(
-                messageSourceService.getMessage("messages.profile", userData.getLanguageCode()),
-                userData.getUser().getFirstName(),
-                messageAndCategoryCount.getMessageCount(),
-                messageAndCategoryCount.getCategoryCount(),
-                quizzesCount.availableQuizCount(),
-                quizzesCount.totalCountPerDay(),
-                quizzesCount.totalFinishedQuizCount()),
-            keyboardService.getProfileKeyboard(userData.getLanguageCode()),
-            null,
-            userData.getMessageId());
+        var quizzesCountCF =
+            CompletableFuture.supplyAsync(
+                () -> quizService.countQuizzes(userData.getUser().getId()), virtualTaskExecutor);
+
+        var audioCountCF =
+            CompletableFuture.supplyAsync(
+                () -> audioService.count(userData.getUser().getId()), virtualTaskExecutor);
+
+        CompletableFuture.allOf(messageAndCategoryCountCF, quizzesCountCF, audioCountCF)
+            .thenApply(
+                v -> {
+                  var messageAndCategoryCount = messageAndCategoryCountCF.join();
+                  var quizzesCount = quizzesCountCF.join();
+                  var audioCount = audioCountCF.join();
+
+                  return String.format(
+                      messageSourceService.getMessage(
+                          "messages.profile", userData.getLanguageCode()),
+                      userData.getUser().getFirstName(),
+                      messageAndCategoryCount.getMessageCount(),
+                      messageAndCategoryCount.getCategoryCount(),
+                      audioCount.currentCount(),
+                      audioCount.availableCount(),
+                      quizzesCount.availableQuizCount(),
+                      quizzesCount.totalCountPerDay(),
+                      quizzesCount.totalFinishedQuizCount());
+                })
+            .thenAcceptAsync(
+                text -> {
+                  telegramClientService.sendEditMessage(
+                      userData.getChatId(),
+                      text,
+                      keyboardService.getProfileKeyboard(userData.getLanguageCode()),
+                      null,
+                      userData.getMessageId());
+                },
+                virtualTaskExecutor);
         return Boolean.TRUE;
       };
 
@@ -1014,13 +1065,24 @@ public class TelegramBotServiceImpl implements TelegramBotService {
                   })
               .orElseGet(
                   () -> {
-                    telegramClientService.sendMessage(
-                        userData.getChatId(),
-                        messageSourceService.getMessage(
-                            "messages.error.audio.limit", userData.getLanguageCode()));
+                    doTry(
+                        (() ->
+                            telegramClientService.sendEditMessage(
+                                EditMessageText.builder()
+                                    .chatId(userData.getChatId())
+                                    .messageId(userData.getMessageId())
+                                    .text(
+                                        messageSourceService.getMessage(
+                                            "messages.error.audio.limit",
+                                            userData.getLanguageCode()))
+                                    .replyMarkup(
+                                        keyboardService.getSingleBackFullMessageKeyboard(
+                                            userData.getLanguageCode(),
+                                            Long.valueOf(
+                                                userData.getCallBackData().get(MESSAGE_ID))))
+                                    .build())));
                     return Boolean.FALSE;
                   });
-
   private final Function<InputUserData, Boolean> handleInputText =
       userData -> {
         if (null != userData.getMessageText()

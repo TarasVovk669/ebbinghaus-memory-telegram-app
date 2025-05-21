@@ -215,4 +215,7 @@ public class Constants {
             ---
             language_code: {%s} and input_text: {%s}.
             """;
+
+  public static final Integer DEFAULT_AUDIO_QTY=2;
+  public static final Integer DEFAULT_QUIZ_QTY=2;
 }

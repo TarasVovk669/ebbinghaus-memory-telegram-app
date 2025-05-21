@@ -11,7 +11,6 @@ import com.ebbinghaus.memory.app.model.MessageDataRequest;
 import com.ebbinghaus.memory.app.model.MessageType;
 import com.ebbinghaus.memory.app.service.MessageSourceService;
 import com.ebbinghaus.memory.app.service.TelegramClientService;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.Collection;

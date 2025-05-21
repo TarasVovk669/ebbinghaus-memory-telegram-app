@@ -1,11 +1,11 @@
 package com.ebbinghaus.memory.app.utils;
 
+import static com.ebbinghaus.memory.app.utils.Constants.EMPTY_STRING;
+
 import com.ebbinghaus.memory.app.exception.TelegramCallException;
 import com.ebbinghaus.memory.app.utils.function.ThrowingRunnable;
 import java.util.Optional;
 import org.springframework.util.function.ThrowingSupplier;
-
-import static com.ebbinghaus.memory.app.utils.Constants.EMPTY_STRING;
 
 public class ObjectUtils {
 

@@ -32,7 +32,6 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageTe
 public class QuizServiceImpl implements QuizService {
 
   private static final Logger log = LoggerFactory.getLogger(QuizServiceImpl.class);
-  public static final int DEFAULT_QUIZ_PAGE_SIZE = 2;
 
   private final AiService aiService;
   private final ObjectMapper objectMapper;
@@ -198,9 +197,9 @@ public class QuizServiceImpl implements QuizService {
     var cutoffDateTime = now.minusHours(24);
     var quizCount = quizRepository.getQuizCount(id, cutoffDateTime, now);
 
-    var availableQuizCount = DEFAULT_QUIZ_PAGE_SIZE - quizCount.getAvailableQuizCount();
+    var availableQuizCount = DEFAULT_QUIZ_QTY - quizCount.getAvailableQuizCount();
     return new QuizCount(
-        availableQuizCount, quizCount.getTotalFinishedQuizCount(), DEFAULT_QUIZ_PAGE_SIZE);
+        availableQuizCount, quizCount.getTotalFinishedQuizCount(), DEFAULT_QUIZ_QTY);
   }
 
   // one quiz per 24 hours on concrete message,
@@ -236,7 +235,7 @@ public class QuizServiceImpl implements QuizService {
     LocalDateTime cutoffDateTime = now.minusHours(24);
     var quizzesCount = quizRepository.findAllRecentQuizzesByUserId(userId, cutoffDateTime, now);
 
-    if (quizzesCount >= DEFAULT_QUIZ_PAGE_SIZE) {
+    if (quizzesCount >= DEFAULT_QUIZ_QTY) {
       return new QuizTuple(MAX_PER_DAY_LIMIT_STATUS, null);
     }
 
