@@ -1,11 +1,5 @@
 package com.ebbinghaus.memory.app.service.impl;
 
-import static com.ebbinghaus.memory.app.domain.quiz.QuestionType.YES_NO;
-import static com.ebbinghaus.memory.app.model.QuizManageStatus.*;
-import static com.ebbinghaus.memory.app.utils.Constants.*;
-import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
-import static java.time.ZoneOffset.UTC;
-
 import com.ebbinghaus.memory.app.domain.quiz.QuestionStatus;
 import com.ebbinghaus.memory.app.domain.quiz.Quiz;
 import com.ebbinghaus.memory.app.domain.quiz.QuizStatus;
@@ -17,15 +11,22 @@ import com.ebbinghaus.memory.app.repository.QuizQuestionRepository;
 import com.ebbinghaus.memory.app.repository.QuizRepository;
 import com.ebbinghaus.memory.app.service.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import static com.ebbinghaus.memory.app.domain.quiz.QuestionType.YES_NO;
+import static com.ebbinghaus.memory.app.model.QuizManageStatus.*;
+import static com.ebbinghaus.memory.app.utils.Constants.*;
+import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
+import static java.time.ZoneOffset.UTC;
 
 @Service
 @RequiredArgsConstructor

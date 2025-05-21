@@ -1,17 +1,18 @@
 package com.ebbinghaus.memory.app.service.impl;
 
-import static com.ebbinghaus.memory.app.utils.Constants.DEFAULT_AUDIO_QTY;
-import static java.time.ZoneOffset.UTC;
-
 import com.ebbinghaus.memory.app.domain.audio.AudioText;
 import com.ebbinghaus.memory.app.model.AudioCount;
 import com.ebbinghaus.memory.app.repository.AudioRepository;
 import com.ebbinghaus.memory.app.service.AudioService;
-import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+
+import static com.ebbinghaus.memory.app.utils.Constants.DEFAULT_AUDIO_QTY;
+import static java.time.ZoneOffset.UTC;
 
 @Service
 @RequiredArgsConstructor

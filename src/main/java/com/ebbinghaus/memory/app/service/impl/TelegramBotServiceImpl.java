@@ -1,30 +1,15 @@
 package com.ebbinghaus.memory.app.service.impl;
 
-import static com.ebbinghaus.memory.app.model.UserState.*;
-import static com.ebbinghaus.memory.app.model.UserState.CATEGORY_DATA_LIST;
-import static com.ebbinghaus.memory.app.utils.Constants.*;
-import static com.ebbinghaus.memory.app.utils.Constants.HELP;
-import static com.ebbinghaus.memory.app.utils.Constants.QUIZ_NEXT_QUESTION_CALLBACK;
-import static com.ebbinghaus.memory.app.utils.DateUtils.calculateNextExecutionTime;
-import static com.ebbinghaus.memory.app.utils.MessageUtils.*;
-import static com.ebbinghaus.memory.app.utils.MessageUtils.manageMsgType;
-import static com.ebbinghaus.memory.app.utils.ObjectUtils.*;
-import static java.time.ZoneOffset.UTC;
-
 import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.domain.EMessageEntity;
 import com.ebbinghaus.memory.app.domain.EMessageType;
-import com.ebbinghaus.memory.app.model.*;
+import com.ebbinghaus.memory.app.model.InputUserData;
+import com.ebbinghaus.memory.app.model.MessageDataRequest;
+import com.ebbinghaus.memory.app.model.MessageTuple;
+import com.ebbinghaus.memory.app.model.UserState;
 import com.ebbinghaus.memory.app.service.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,6 +21,22 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static com.ebbinghaus.memory.app.model.UserState.*;
+import static com.ebbinghaus.memory.app.utils.Constants.*;
+import static com.ebbinghaus.memory.app.utils.Constants.HELP;
+import static com.ebbinghaus.memory.app.utils.DateUtils.calculateNextExecutionTime;
+import static com.ebbinghaus.memory.app.utils.MessageUtils.*;
+import static com.ebbinghaus.memory.app.utils.ObjectUtils.*;
+import static java.time.ZoneOffset.UTC;
 
 @Service
 public class TelegramBotServiceImpl implements TelegramBotService {

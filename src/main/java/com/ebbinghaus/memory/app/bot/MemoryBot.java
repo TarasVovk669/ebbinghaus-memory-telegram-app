@@ -1,13 +1,9 @@
 package com.ebbinghaus.memory.app.bot;
 
-import static com.ebbinghaus.memory.app.model.UserState.*;
-import static com.ebbinghaus.memory.app.utils.Constants.*;
-import static com.ebbinghaus.memory.app.utils.MessageUtils.*;
-import static com.ebbinghaus.memory.app.utils.ObjectUtils.*;
-
-import com.ebbinghaus.memory.app.domain.*;
-import com.ebbinghaus.memory.app.model.*;
-import com.ebbinghaus.memory.app.service.*;
+import com.ebbinghaus.memory.app.domain.EUser;
+import com.ebbinghaus.memory.app.model.InputUserData;
+import com.ebbinghaus.memory.app.service.TelegramBotService;
+import com.ebbinghaus.memory.app.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,6 +12,11 @@ import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
+
+import static com.ebbinghaus.memory.app.model.UserState.WAIT_FORWARDED_MESSAGE;
+import static com.ebbinghaus.memory.app.utils.Constants.*;
+import static com.ebbinghaus.memory.app.utils.MessageUtils.manageMsgType;
+import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
 
 @Component
 public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {

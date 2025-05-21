@@ -1,10 +1,5 @@
 package com.ebbinghaus.memory.app.utils;
 
-import static com.ebbinghaus.memory.app.utils.Constants.*;
-import static com.ebbinghaus.memory.app.utils.DateUtils.formatDuration;
-import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
-import static java.time.ZoneOffset.UTC;
-
 import com.ebbinghaus.memory.app.domain.Category;
 import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.domain.EMessageEntity;
@@ -13,11 +8,17 @@ import com.ebbinghaus.memory.app.model.InputUserData;
 import com.ebbinghaus.memory.app.model.MessageType;
 import com.ebbinghaus.memory.app.service.MessageSourceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
+import org.telegram.telegrambots.meta.api.objects.message.Message;
+
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.telegram.telegrambots.meta.api.objects.MessageEntity;
-import org.telegram.telegrambots.meta.api.objects.message.Message;
+
+import static com.ebbinghaus.memory.app.utils.Constants.*;
+import static com.ebbinghaus.memory.app.utils.DateUtils.formatDuration;
+import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
+import static java.time.ZoneOffset.UTC;
 
 public class MessageUtils {
 

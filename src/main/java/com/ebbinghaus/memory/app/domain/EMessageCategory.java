@@ -2,8 +2,9 @@ package com.ebbinghaus.memory.app.domain;
 
 import com.ebbinghaus.memory.app.domain.embedded.EMessageCategoryId;
 import jakarta.persistence.*;
-import java.util.Objects;
 import lombok.*;
+
+import java.util.Objects;
 
 @Data
 @ToString(exclude = {"message", "category"})
