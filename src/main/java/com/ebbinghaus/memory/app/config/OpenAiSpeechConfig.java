@@ -10,15 +10,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenAiSpeechConfig {
 
-  @Bean
-  public OpenAiAudioSpeechModel speechModel(@Value("${spring.ai.openai.api-key}") String apiKey) {
-    OpenAiAudioSpeechOptions opts =
-        OpenAiAudioSpeechOptions.builder()
-            .withModel("tts-1")
-            .withVoice(OpenAiAudioApi.SpeechRequest.Voice.ALLOY)
-            .withResponseFormat(OpenAiAudioApi.SpeechRequest.AudioResponseFormat.MP3)
-            .withSpeed(1.0f)
-            .build();
-    return new OpenAiAudioSpeechModel(new OpenAiAudioApi(apiKey), opts);
-  }
+    @Bean
+    public OpenAiAudioSpeechModel speechModel(@Value("${spring.ai.openai.api-key}") String apiKey) {
+        var opts =
+                OpenAiAudioSpeechOptions.builder()
+                        .model("tts-1")
+                        .voice(OpenAiAudioApi.SpeechRequest.Voice.ALLOY)
+                        .responseFormat(OpenAiAudioApi.SpeechRequest.AudioResponseFormat.MP3)
+                        .speed(1.0f)
+                        .build();
+        return new OpenAiAudioSpeechModel(OpenAiAudioApi.builder()
+                .apiKey(apiKey)
+                .build(), opts);
+    }
 }
