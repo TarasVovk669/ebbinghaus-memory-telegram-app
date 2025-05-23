@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,8 +44,7 @@ public class EMessage {
 
   @Embedded private File file;
 
-  @OneToMany(cascade = {CascadeType.REMOVE})
-  @JoinColumn(name = "message_id")
+  @OneToMany(mappedBy = "message",cascade = {CascadeType.ALL}, orphanRemoval = true)
   private Set<EMessageCategory> messageCategories = new HashSet<>();
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)

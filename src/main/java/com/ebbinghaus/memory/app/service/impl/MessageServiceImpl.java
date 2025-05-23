@@ -257,14 +257,17 @@ public class MessageServiceImpl implements MessageService {
 
   private void manageMessageCategoryWithCategory(
       EMessage message, Collection<EMessageCategory> difference) {
+    var sst = difference.stream()
+            .map(mc -> mc.getId().getCategoryId())
+            .collect(Collectors.toList());
     messageCategoryRepository.deleteAll(difference);
+    message.getMessageCategories().removeAll(difference);
+
     List<Long> result =
         categoryService
             .findCategoryMessageCounts(
                 message.getOwnerId(),
-                difference.stream()
-                    .map(mc -> mc.getId().getCategoryId())
-                    .collect(Collectors.toList()))
+                sst)
             .stream()
             .filter(c -> c.getMsgQuantity().equals(0L))
             .map(CategoryMessageCountProj::getId)
