@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface MessageService {
@@ -32,4 +33,6 @@ public interface MessageService {
   DataMessageCategoryProj getMessageAndCategoryCount(Long ownerId);
 
   EMessage restartMessageAndSchedule(Long messageId, Long chatId);
+
+  List<EMessage> selectTopMessagesForUser(Long userId);
 }

@@ -6,5 +6,7 @@ public interface UtilityService {
 
   void removeSchedulerTrigger(Long id, Long chatId);
 
+  void removeSchedulerTrigger(String key);
+
   void rescheduleJob(EMessage message, Long chatId);
 }

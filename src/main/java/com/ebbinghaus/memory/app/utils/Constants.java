@@ -35,8 +35,10 @@ public class Constants {
   public static final String RESTART_MESSAGE_CALLBACK = "rmc";
   public static final String TEST_MESSAGE_CALLBACK = "tm";
   public static final String DELETE_MESSAGE_YES_CALLBACK = "dmy";
-  public static final String RESTART_MESSAGE_YES_CALLBACK = "rmy";
   public static final String DELETE_MESSAGE_NO_CALLBACK = "dmn";
+  public static final String QUIZ_REMAINDER_MESSAGE_YES_CALLBACK = "qrmy";
+  public static final String RESTART_MESSAGE_YES_CALLBACK = "rmy";
+  public static final String QUIZ_REMAINDER_MESSAGE_NO_CALLBACK = "qrmn";
   public static final String RESTART_MESSAGE_NO_CALLBACK = "rmn";
   public static final String VIEW_PROFILE_LANGUAGE_CALLBACK = "vpl";
   public static final String HOT_IT_WORKS_CALLBACK = "htw";
@@ -58,6 +60,7 @@ public class Constants {
   public static final String START = "/start";
   public static final String HELP = "/help";
   public static final int SHORT_MESSAGE_SYMBOL_QUANTITY = 300;
+  public static final int QUIZ_SHORT_MESSAGE_SYMBOL_QUANTITY = 100;
 
   public static final String DOTS_STR = "...";
   public static final int SHORT_ELEMENT_LENGTH = 100;
@@ -80,6 +83,8 @@ public class Constants {
   public static final String FIB_STEP_SECOND = "fib_step_second";
   public static final String TRIGGERS_GROUP = "message-triggers";
   public static final String JOBS_GROUP = "message-jobs";
+  public static final String QUIZ_REMAINDER = "quiz_remainder";
+  public static final String DEFAULT = "default";
   public static final int MINIMUM_TEST_PASSED_LENGTH = 300;
   public static final String MESSAGE_CAN_T_BE_DELETED_FOR_EVERYONE =
       "message can't be deleted for everyone";

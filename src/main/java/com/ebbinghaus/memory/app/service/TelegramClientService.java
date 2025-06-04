@@ -45,6 +45,8 @@ public interface TelegramClientService {
 
   void deleteMessage(Long chatId, int messageId, String languageCode, EMessage message);
 
+  void deleteMessage(Long chatId, int messageId, String languageCode);
+
   void deleteMessages(Long chatId, Collection<Integer> messageIds);
 
   Message sendMessage(MessageType messageType, MessageDataRequest build);

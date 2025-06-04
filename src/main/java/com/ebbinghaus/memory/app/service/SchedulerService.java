@@ -5,4 +5,6 @@ import com.ebbinghaus.memory.app.model.InputUserData;
 
 public interface SchedulerService {
   void scheduleMessage(EMessage message, InputUserData userData);
+
+    void scheduleQuizRemainderMessage()  ;
 }

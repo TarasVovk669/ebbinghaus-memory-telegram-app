@@ -125,6 +125,9 @@ public class TelegramBotServiceImpl implements TelegramBotService {
     functionCallbackDataMap.put(QUIZ_NEXT_QUESTION_CALLBACK, handleQuizNextQuestion);
     functionCallbackDataMap.put(TEXT_TO_SPEECH_CALLBACK, handleTextToSpeech);
 
+      functionCallbackDataMap.put(QUIZ_REMAINDER_MESSAGE_YES_CALLBACK, handleTestMessage);
+      functionCallbackDataMap.put(QUIZ_REMAINDER_MESSAGE_NO_CALLBACK, handleRemainderQuizNo);
+
     functionUserStateMap.put(WAIT_TEXT, handleInputText);
     functionUserStateMap.put(WAIT_FORWARDED_MESSAGE, handleInputText);
   }
@@ -832,6 +835,14 @@ public class TelegramBotServiceImpl implements TelegramBotService {
 
         return Boolean.TRUE;
       };
+
+    private final Function<InputUserData, Boolean> handleRemainderQuizNo =
+            userData -> {
+                telegramClientService.deleteMessage(
+                        userData.getChatId(), userData.getMessageId(), userData.getLanguageCode());
+
+                return Boolean.TRUE;
+            };
 
   private final Function<InputUserData, Boolean> handleMessageRestartYes =
       userData -> {

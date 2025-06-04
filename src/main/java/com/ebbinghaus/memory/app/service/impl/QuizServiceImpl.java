@@ -203,6 +203,13 @@ public class QuizServiceImpl implements QuizService {
         availableQuizCount, quizCount.getTotalFinishedQuizCount(), DEFAULT_QUIZ_QTY);
   }
 
+  @Override
+  public boolean existsQuizPassedWithin(Long chatId, Long messageId, LocalDateTime localDateTime) {
+    log.info("Check if quiz passed within 24 hours for chat_id: {}, message_id: {}", chatId, messageId);
+
+    return quizRepository.existsQuizPassedWithin(chatId, messageId, localDateTime);
+  }
+
   // one quiz per 24 hours on concrete message,
   // 2 quizzes per 24 hours
   private QuizTuple manageUserQuiz(Long userId, Long messageId, String languageCode) {

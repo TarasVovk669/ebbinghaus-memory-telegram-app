@@ -30,4 +30,18 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
     QuizCountProj getQuizCount(@Param("ownerId") Long ownerId,
                                @Param("cutoffTime") LocalDateTime cutoffTime,
                                @Param("now") LocalDateTime now);
+
+    @Query("""
+        SELECT CASE WHEN COUNT(q) > 0 THEN true ELSE false END
+        FROM Quiz q
+        WHERE q.ownerId = :userId
+          AND q.messageId = :messageId
+          AND (
+            q.createdDateTime >= :sinceTime
+            OR q.finishedDateTime >= :sinceTime
+          )
+    """)
+    boolean existsQuizPassedWithin(@Param("userId") Long userId,
+                                   @Param("messageId") Long messageId,
+                                   @Param("sinceTime") LocalDateTime sinceTime);
 }

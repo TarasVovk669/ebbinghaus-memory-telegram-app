@@ -5,6 +5,7 @@ import com.ebbinghaus.memory.app.model.UserState;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.User;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -21,4 +22,6 @@ public interface UserService {
   Optional<EUser> findUser(Long userId);
 
   void updateLanguageCode(Long userId, String languageCode);
+
+  List<EUser> findAllActiveUsers();
 }

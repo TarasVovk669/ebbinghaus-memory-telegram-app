@@ -1,8 +1,6 @@
 package com.ebbinghaus.memory.app.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +20,9 @@ public class EUser {
   @Id private Long id;
 
   private String languageCode;
+
+  @Enumerated(EnumType.STRING)
+  private UserStatus status;
 
   @CreationTimestamp private LocalDateTime createdDateTime;
 }
