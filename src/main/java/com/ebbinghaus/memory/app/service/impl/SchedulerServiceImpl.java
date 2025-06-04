@@ -27,7 +27,6 @@ import static com.ebbinghaus.memory.app.utils.Constants.DEFAULT;
 import static com.ebbinghaus.memory.app.utils.Constants.QUIZ_REMAINDER;
 import static com.ebbinghaus.memory.app.utils.SchedulerUtils.getScheduleResultTuple;
 import static com.ebbinghaus.memory.app.utils.SchedulerUtils.initRetryCounts;
-import static java.time.ZoneOffset.UTC;
 
 @Component
 @RequiredArgsConstructor
@@ -81,9 +80,8 @@ public class SchedulerServiceImpl extends QuartzJobBean implements SchedulerServ
                 .forEach(user -> {
                     var time = LocalTime.of(14, 0);
 
-                    scheduleMessage(user, DayOfWeek.TUESDAY, LocalTime.now(UTC).plusSeconds(15));
-                    //scheduleMessage(user, DayOfWeek.TUESDAY, time);
-                    //scheduleMessage(user, DayOfWeek.FRIDAY, time);
+                    scheduleMessage(user, DayOfWeek.TUESDAY, time);
+                    scheduleMessage(user, DayOfWeek.FRIDAY, time);
                 });
     }
 

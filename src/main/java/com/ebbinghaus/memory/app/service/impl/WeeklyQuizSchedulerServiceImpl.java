@@ -12,9 +12,8 @@ public class WeeklyQuizSchedulerServiceImpl  {
 
     private final SchedulerService schedulerService;
 
-    //@Scheduled(cron = "0 0 12 * * SUN")
     @Async
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 12 * * SUN")
     public void scheduleQuizJobs() {
         schedulerService.scheduleQuizRemainderMessage();
     }
