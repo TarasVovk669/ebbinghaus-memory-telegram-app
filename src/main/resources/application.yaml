@@ -13,6 +13,12 @@ spring:
           model: ${AI_MODEL}
           response-format:
             type: json_object
+    retry:
+      max-attempts: 10
+      backoff:
+        initial-interval: 1s
+        max-interval: 360s
+        multiplier: 5
 
   flyway:
     schemas:
