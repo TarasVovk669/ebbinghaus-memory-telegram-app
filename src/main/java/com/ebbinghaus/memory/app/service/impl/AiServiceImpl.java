@@ -8,8 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +18,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-import static com.ebbinghaus.memory.app.model.QuizManageStatus.*;
+import static com.ebbinghaus.memory.app.model.QuizManageStatus.DEFAULT;
+import static com.ebbinghaus.memory.app.model.QuizManageStatus.SUCCESS;
 import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
 import static java.time.ZoneOffset.UTC;
 

@@ -1,7 +1,6 @@
 package com.ebbinghaus.memory.app.service.impl.strategy.scheduler;
 
 import com.ebbinghaus.memory.app.domain.EMessageEntity;
-import com.ebbinghaus.memory.app.domain.EUser;
 import com.ebbinghaus.memory.app.domain.ScheduleMessageErrorQueue;
 import com.ebbinghaus.memory.app.exception.TelegramCallException;
 import com.ebbinghaus.memory.app.model.MessageDataRequest;
