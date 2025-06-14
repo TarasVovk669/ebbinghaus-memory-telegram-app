@@ -97,6 +97,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean isQuizRemainderEnabled(Long userId) {
+        log.info("Check if quiz remainder is enabled for user_id: {}", userId);
+        return userRepository.existsByIdAndQuizRemainderEnabledIsTrue(userId);
+    }
+
+    @Override
+    public void changeQuizRemainderEnabled(Long userId, boolean enabled) {
+        log.info("Change quiz remainder enabled for user_id: {} with value: {}", userId, enabled);
+
+        userRepository.findById(userId).ifPresentOrElse(user -> {
+            user.setQuizRemainderEnabled(enabled);
+            userRepository.save(user);
+        }, () -> log.warn("User with id: {} not found", userId));
+    }
+
+    @Override
     @Cacheable(value = "get_user_state", key = "#userId")
     public UserState getUserState(Long userId) {
         log.info("Get user_state with id: {}", userId);

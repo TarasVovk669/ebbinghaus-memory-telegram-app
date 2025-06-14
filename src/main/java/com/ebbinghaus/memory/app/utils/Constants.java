@@ -49,6 +49,9 @@ public class Constants {
     public static final String QUIZ_NEXT_QUESTION_CALLBACK = "qnqc";
     public static final String TEXT_TO_SPEECH_CALLBACK = "tts";
 
+    public static final String PUSH_QUIZ_ENABLE = "pqe";
+    public static final String PUSH_QUIZ_DISABLE = "pqd";
+
     public static final String UNCATEGORIZED = "#uncategorized";
     public static final String FORWARDED = "#forwarded";
     public static final int FIRST_EXECUTION_STEP = 1;

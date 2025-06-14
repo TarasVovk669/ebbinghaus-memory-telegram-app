@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface UserRepository extends JpaRepository<EUser, Long> {
     List<EUser> findAllByStatus(UserStatus status);
+
+    boolean existsByIdAndQuizRemainderEnabledIsTrue(Long id);
 }

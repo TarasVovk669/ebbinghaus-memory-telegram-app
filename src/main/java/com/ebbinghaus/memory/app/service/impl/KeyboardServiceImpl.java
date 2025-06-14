@@ -264,7 +264,7 @@ public class KeyboardServiceImpl implements KeyboardService {
     }
 
     @Override
-    public InlineKeyboardMarkup getProfileKeyboard(String languageCode) {
+    public InlineKeyboardMarkup getProfileKeyboard(boolean isQuizEnabled, String languageCode) {
         var changeLanguage =
                 InlineKeyboardButton.builder()
                         .text(messageSourceService.getMessage("messages.profile.change-language", languageCode))
@@ -295,10 +295,28 @@ public class KeyboardServiceImpl implements KeyboardService {
                                                         Map.ofEntries(Map.entry(OPERATION, HOT_IT_WORKS_CALLBACK)))))
                         .build();
 
+        var quizRemainderPush =
+                InlineKeyboardButton.builder()
+                        .text(messageSourceService.getMessage(
+                                isQuizEnabled
+                                        ? "messages.profile.disable-quiz-notifications"
+                                        : "messages.profile.activate-quiz-notifications",
+                                languageCode))
+                        .callbackData(
+                                doTry(
+                                        () ->
+                                                objectMapper.writeValueAsString(
+                                                        Map.ofEntries(Map.entry(OPERATION,
+                                                                isQuizEnabled
+                                                                        ? PUSH_QUIZ_DISABLE
+                                                                        : PUSH_QUIZ_ENABLE)))))
+                        .build();
+
         return new InlineKeyboardMarkup(
                 List.of(
                         new InlineKeyboardRow(changeLanguage),
                         new InlineKeyboardRow(howItWorks),
+                        new InlineKeyboardRow(quizRemainderPush),
                         new InlineKeyboardRow(contactInfo)));
     }
 

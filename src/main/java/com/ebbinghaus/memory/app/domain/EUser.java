@@ -24,5 +24,7 @@ public class EUser {
   @Enumerated(EnumType.STRING)
   private UserStatus status;
 
+  private Boolean quizRemainderEnabled;
+
   @CreationTimestamp private LocalDateTime createdDateTime;
 }

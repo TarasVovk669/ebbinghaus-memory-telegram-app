@@ -24,4 +24,8 @@ public interface UserService {
   void updateLanguageCode(Long userId, String languageCode);
 
   List<EUser> findAllActiveUsers();
+
+  boolean isQuizRemainderEnabled(Long userId);
+
+  void changeQuizRemainderEnabled(Long userId, boolean enabled);
 }

@@ -23,7 +23,7 @@ public interface KeyboardService {
 
   InlineKeyboardMarkup getRestartKeyboard(Long messageId, String languageCode);
 
-  InlineKeyboardMarkup getProfileKeyboard(String languageCode);
+  InlineKeyboardMarkup getProfileKeyboard(boolean isQuizEnabled,String languageCode);
 
   InlineKeyboardMarkup getAvailableLanguage(String languageCode);
 

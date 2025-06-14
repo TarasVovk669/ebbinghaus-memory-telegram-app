@@ -1,6 +1,7 @@
 package com.ebbinghaus.memory.app.service.impl.strategy.scheduler;
 
 import com.ebbinghaus.memory.app.domain.EMessageEntity;
+import com.ebbinghaus.memory.app.domain.EUser;
 import com.ebbinghaus.memory.app.domain.ScheduleMessageErrorQueue;
 import com.ebbinghaus.memory.app.exception.TelegramCallException;
 import com.ebbinghaus.memory.app.model.MessageDataRequest;
@@ -47,66 +48,82 @@ public class QuizRemainderStrategy implements SchedulerStrategy {
     @Override
     public void process(JobExecutionContext context, JobDataMap jobDataMap) {
         var chatId = Long.valueOf(jobDataMap.getString("chat_id"));
-        var languageCode = userService.getUser(chatId).getLanguageCode();
-        var messages = messageService.selectTopMessagesForUser(chatId);
-        var quizRemainderTitle = messageSourceService.getMessage("messages.quiz.remainder.title", languageCode);
+        var user = userService.getUser(chatId);
+        var languageCode = user.getLanguageCode();
+        var isQuizRemainderEnabled = user.getQuizRemainderEnabled();
 
-        messages.stream()
-                .findFirst()
-                .ifPresentOrElse(message -> {
-                    var messageString =
-                            quizRemainderTitle
-                                    .concat(parseMessage(message, false, false, languageCode, messageSourceService));
-                    try {
-                        var sentMessage =
-                                telegramClientService.sendMessage(
-                                        manageMsgType(message),
-                                        MessageDataRequest.builder()
-                                                .chatId(chatId)
-                                                .messageText(messageString)
-                                                .messageId(message.getId().intValue())
-                                                .entities(
-                                                        manageMessageEntitiesShortMessage(
-                                                                message.getMessageEntities(),
-                                                                messageString,
-                                                                QUIZ_SHORT_MESSAGE_SYMBOL_QUANTITY,
-                                                                null,
-                                                                objectMapper,
-                                                                false,
-                                                                quizRemainderTitle.length()
-                                                        ))
-                                                .replyKeyboard(
-                                                        keyboardService.getQuizRemainderKeyboard(message.getId(), languageCode))
-                                                .file(message.getFile())
-                                                .build());
-                        log.info("Sent message: {}", sentMessage.getMessageId());
-                        utilityService.removeSchedulerTrigger(context.getJobDetail().getKey().getName());
+        if (isQuizRemainderEnabled) {
+            var messages = messageService.selectTopMessagesForUser(chatId);
+            var quizRemainderTitle = messageSourceService.getMessage("messages.quiz.remainder.title", languageCode);
 
-                    } catch (TelegramCallException e) {
-                        log.info("Error tg call", e);
+            messages.stream()
+                    .findFirst()
+                    .ifPresentOrElse(message -> {
+                        var messageString =
+                                quizRemainderTitle
+                                        .concat(parseMessage(message, false, false, languageCode, messageSourceService));
+                        try {
+                            var sentMessage =
+                                    telegramClientService.sendMessage(
+                                            manageMsgType(message),
+                                            MessageDataRequest.builder()
+                                                    .chatId(chatId)
+                                                    .messageText(messageString)
+                                                    .messageId(message.getId().intValue())
+                                                    .entities(
+                                                            manageMessageEntitiesShortMessage(
+                                                                    message.getMessageEntities(),
+                                                                    messageString,
+                                                                    QUIZ_SHORT_MESSAGE_SYMBOL_QUANTITY,
+                                                                    null,
+                                                                    objectMapper,
+                                                                    false,
+                                                                    quizRemainderTitle.length()
+                                                            ))
+                                                    .replyKeyboard(
+                                                            keyboardService.getQuizRemainderKeyboard(message.getId(), languageCode))
+                                                    .file(message.getFile())
+                                                    .build());
+                            log.info("Sent message: {}", sentMessage.getMessageId());
+                            utilityService.removeSchedulerTrigger(context.getJobDetail().getKey().getName());
 
-                        if (SERVER_MOST_POPULAR_ERRORS.stream().anyMatch(error -> e.getMessage().contains(error))) {
-                            var fibFirst = jobDataMap.getIntegerFromString(FIB_STEP_FIRST);
-                            var fibSecond = jobDataMap.getIntegerFromString(FIB_STEP_SECOND);
-                            var sum = fibFirst + fibSecond;
+                        } catch (TelegramCallException e) {
+                            log.info("Error tg call", e);
 
-                            if (sum <= maxTryFibonacciTime) {
-                                log.warn(
-                                        "Postpone the job with id: {}, because of error with num: {}",
-                                        context.getJobDetail().getKey(),
-                                        sum);
+                            if (SERVER_MOST_POPULAR_ERRORS.stream().anyMatch(error -> e.getMessage().contains(error))) {
+                                var fibFirst = jobDataMap.getIntegerFromString(FIB_STEP_FIRST);
+                                var fibSecond = jobDataMap.getIntegerFromString(FIB_STEP_SECOND);
+                                var sum = fibFirst + fibSecond;
 
-                                jobDataMap.putAsString(FIB_STEP_FIRST, fibSecond);
-                                jobDataMap.putAsString(FIB_STEP_SECOND, sum);
+                                if (sum <= maxTryFibonacciTime) {
+                                    log.warn(
+                                            "Postpone the job with id: {}, because of error with num: {}",
+                                            context.getJobDetail().getKey(),
+                                            sum);
 
-                                var nextTryExecutionTime = LocalDateTime.now(UTC).plusMinutes(sum);
-                                rescheduleJob(context, nextTryExecutionTime.toInstant(UTC));
+                                    jobDataMap.putAsString(FIB_STEP_FIRST, fibSecond);
+                                    jobDataMap.putAsString(FIB_STEP_SECOND, sum);
+
+                                    var nextTryExecutionTime = LocalDateTime.now(UTC).plusMinutes(sum);
+                                    rescheduleJob(context, nextTryExecutionTime.toInstant(UTC));
+                                } else {
+                                    log.error(
+                                            "Error to reschedule message with limit try_count. message_id: {}, chat_id: {}",
+                                            message.getId(),
+                                            chatId);
+
+                                    scheduleMessageErrorQueueService.save(
+                                            ScheduleMessageErrorQueue.builder()
+                                                    .messageId(message.getId())
+                                                    .chatId(chatId)
+                                                    .ownerId(message.getOwnerId())
+                                                    .errorText("Quiz remainder:" + e.getMessage())
+                                                    .time(LocalDateTime.now(UTC))
+                                                    .build());
+
+                                    utilityService.removeSchedulerTrigger(context.getJobDetail().getKey().getName());
+                                }
                             } else {
-                                log.error(
-                                        "Error to reschedule message with limit try_count. message_id: {}, chat_id: {}",
-                                        message.getId(),
-                                        chatId);
-
                                 scheduleMessageErrorQueueService.save(
                                         ScheduleMessageErrorQueue.builder()
                                                 .messageId(message.getId())
@@ -118,23 +135,15 @@ public class QuizRemainderStrategy implements SchedulerStrategy {
 
                                 utilityService.removeSchedulerTrigger(context.getJobDetail().getKey().getName());
                             }
-                        } else {
-                            scheduleMessageErrorQueueService.save(
-                                    ScheduleMessageErrorQueue.builder()
-                                            .messageId(message.getId())
-                                            .chatId(chatId)
-                                            .ownerId(message.getOwnerId())
-                                            .errorText("Quiz remainder:" + e.getMessage())
-                                            .time(LocalDateTime.now(UTC))
-                                            .build());
-
-                            utilityService.removeSchedulerTrigger(context.getJobDetail().getKey().getName());
                         }
-                    }
-                }, () ->{
-                    log.info("No messages found for user with chat_id: {}", chatId);
-                    utilityService.removeSchedulerTrigger(context.getJobDetail().getKey().getName());
-                });
+                    }, () -> {
+                        log.info("No messages found for user with chat_id: {}", chatId);
+                        utilityService.removeSchedulerTrigger(context.getJobDetail().getKey().getName());
+                    });
+        } else {
+            log.info("Quiz remainder is disabled for user with chat_id: {}", chatId);
+            utilityService.removeSchedulerTrigger(context.getJobDetail().getKey().getName());
+        }
     }
 
     private void rescheduleJob(JobExecutionContext context, Instant date) {
