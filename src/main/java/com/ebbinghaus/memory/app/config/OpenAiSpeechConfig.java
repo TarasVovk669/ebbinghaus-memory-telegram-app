@@ -14,7 +14,7 @@ public class OpenAiSpeechConfig {
     public OpenAiAudioSpeechModel speechModel(@Value("${spring.ai.openai.api-key}") String apiKey) {
         var opts =
                 OpenAiAudioSpeechOptions.builder()
-                        .model("tts-1")
+                        .model("tts-1-hd")
                         .voice(OpenAiAudioApi.SpeechRequest.Voice.ALLOY)
                         .responseFormat(OpenAiAudioApi.SpeechRequest.AudioResponseFormat.MP3)
                         .speed(1.0f)
