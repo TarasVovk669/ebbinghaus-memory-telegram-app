@@ -1,6 +1,5 @@
 package com.ebbinghaus.memory.app.service.impl;
 
-import com.ebbinghaus.memory.app.bot.MemoryBot;
 import com.ebbinghaus.memory.app.domain.EMessage;
 import com.ebbinghaus.memory.app.model.MessageDataRequest;
 import com.ebbinghaus.memory.app.model.MessageType;
@@ -38,7 +37,7 @@ import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTryTgCall;
 @RequiredArgsConstructor
 public class TelegramClientServiceImpl implements TelegramClientService {
 
-    private static final Logger log = LoggerFactory.getLogger(MemoryBot.class);
+    private static final Logger log = LoggerFactory.getLogger(TelegramClientServiceImpl.class);
 
     private final TelegramClient telegramClient;
     private final MessageSourceService messageSourceService;
