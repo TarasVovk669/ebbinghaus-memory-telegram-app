@@ -17,14 +17,16 @@ import java.time.LocalDateTime;
 @Table(name = "e_user")
 public class EUser {
 
-  @Id private Long id;
+    @Id
+    private Long id;
 
-  private String languageCode;
+    private String languageCode;
 
-  @Enumerated(EnumType.STRING)
-  private UserStatus status;
+    @Enumerated(EnumType.STRING)
+    private UserStatus status;
 
-  private Boolean quizRemainderEnabled;
+    private Boolean quizRemainderEnabled;
 
-  @CreationTimestamp private LocalDateTime createdDateTime;
+    @CreationTimestamp
+    private LocalDateTime createdDateTime;
 }

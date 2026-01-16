@@ -44,6 +44,18 @@ public class QuizRemainderStrategy implements SchedulerStrategy {
     @Value("${app.max.try-fibonacci-time}")
     private Integer maxTryFibonacciTime;
 
+    private static List<MessageEntity> shiftEntities(
+            Collection<EMessageEntity> src,
+            int shift,
+            ObjectMapper mapper) {
+
+        return src.stream()
+                .map(e -> doTry(() ->
+                        mapper.readValue(e.getValue(), MessageEntity.class)))
+                .peek(me -> me.setOffset(me.getOffset() + shift))
+                .toList();
+    }
+
     @Override
     public void process(JobExecutionContext context, JobDataMap jobDataMap) {
         var chatId = Long.valueOf(jobDataMap.getString("chat_id"));
@@ -169,17 +181,5 @@ public class QuizRemainderStrategy implements SchedulerStrategy {
                     scheduler.addJob(newJobDetail, true);
                     scheduler.rescheduleJob(newTrigger.getKey(), newTrigger);
                 });
-    }
-
-    private static List<MessageEntity> shiftEntities(
-            Collection<EMessageEntity> src,
-            int shift,
-            ObjectMapper mapper) {
-
-        return src.stream()
-                .map(e -> doTry(() ->
-                        mapper.readValue(e.getValue(), MessageEntity.class)))
-                .peek(me -> me.setOffset(me.getOffset() + shift))
-                .toList();
     }
 }

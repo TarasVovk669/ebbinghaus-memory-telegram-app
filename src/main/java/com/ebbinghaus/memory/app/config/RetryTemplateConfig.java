@@ -18,16 +18,15 @@ public class RetryTemplateConfig {
         var backOffPolicy = new FixedBackOffPolicy();
         backOffPolicy.setBackOffPeriod(1000L);
 
-        var policy = new SimpleRetryPolicy(3,
+        var policy = new SimpleRetryPolicy(
+                3,
                 Map.of(
                         JsonProcessingException.class, true,
                         JsonMappingException.class, true,
-                        Exception.class, false
-                ));
+                        Exception.class, false));
         return RetryTemplate.builder()
                 .customPolicy(policy)
                 .customBackoff(backOffPolicy)
                 .build();
-
     }
 }

@@ -89,34 +89,28 @@ public class Constants {
     public static final String QUIZ_REMAINDER = "quiz_remainder";
     public static final String DEFAULT = "default";
     public static final int MINIMUM_TEST_PASSED_LENGTH = 300;
-    public static final String MESSAGE_CAN_T_BE_DELETED_FOR_EVERYONE =
-            "message can't be deleted for everyone";
+    public static final String MESSAGE_CAN_T_BE_DELETED_FOR_EVERYONE = "message can't be deleted for everyone";
     public static final String MARKDOWN = "markdown";
-    public static final List<String> SERVER_MOST_POPULAR_ERRORS =
-            List.of("500", "501", "502", "503", "504");
+    public static final List<String> SERVER_MOST_POPULAR_ERRORS = List.of("500", "501", "502", "503", "504");
     public static final Map<String, AtomicInteger> COUNT_MAP =
             new ConcurrentReferenceHashMap<>(100, ConcurrentReferenceHashMap.ReferenceType.WEAK);
-    public static final TypeReference<HashMap<String, String>> MAP_TYPE_REF =
-            new TypeReference<>() {
-            };
+    public static final TypeReference<HashMap<String, String>> MAP_TYPE_REF = new TypeReference<>() {};
     public static final Map<String, String> IMAGE_CACHE_MAP = new HashMap<>();
-    public static final Map<Integer, Long> INTERVAL_MAP =
-            Map.ofEntries(
-                    Map.entry(1, 30L),
-                    Map.entry(2, 60 * 8L),
-                    Map.entry(3, 60 * 24L),
-                    Map.entry(4, 7 * 60 * 24L),
-                    Map.entry(5, 30 * 60 * 24L),
-                    Map.entry(6, 3 * 30 * 60 * 24L),
-                    Map.entry(7, 6 * 30 * 60 * 24L),
-                    Map.entry(8, 12 * 30 * 60 * 24L),
-                    Map.entry(9, 24 * 30 * 60 * 24L),
-                    Map.entry(10, 60 * 30 * 60 * 24L));
-    public static final Map<String, LanguageData> AVAILABLE_LANGUAGES_MAP =
-            Map.ofEntries(
-                    Map.entry("en", new LanguageData("\uD83C\uDDFA\uD83C\uDDF8", "English")),
-                    Map.entry("uk", new LanguageData("\uD83C\uDDFA\uD83C\uDDE6", "Українська")),
-                    Map.entry("ru", new LanguageData("\uD83C\uDDF7\uD83C\uDDFA", "Русский")));
+    public static final Map<Integer, Long> INTERVAL_MAP = Map.ofEntries(
+            Map.entry(1, 30L),
+            Map.entry(2, 60 * 8L),
+            Map.entry(3, 60 * 24L),
+            Map.entry(4, 7 * 60 * 24L),
+            Map.entry(5, 30 * 60 * 24L),
+            Map.entry(6, 3 * 30 * 60 * 24L),
+            Map.entry(7, 6 * 30 * 60 * 24L),
+            Map.entry(8, 12 * 30 * 60 * 24L),
+            Map.entry(9, 24 * 30 * 60 * 24L),
+            Map.entry(10, 60 * 30 * 60 * 24L));
+    public static final Map<String, LanguageData> AVAILABLE_LANGUAGES_MAP = Map.ofEntries(
+            Map.entry("en", new LanguageData("\uD83C\uDDFA\uD83C\uDDF8", "English")),
+            Map.entry("uk", new LanguageData("\uD83C\uDDFA\uD83C\uDDE6", "Українська")),
+            Map.entry("ru", new LanguageData("\uD83C\uDDF7\uD83C\uDDFA", "Русский")));
 
     public static final Integer DEFAULT_AUDIO_QTY = 2;
     public static final Integer DEFAULT_QUIZ_QTY = 2;

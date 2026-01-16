@@ -11,14 +11,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ChatGptTtsServiceImpl implements TtsService {
 
-  private static final Logger log = LoggerFactory.getLogger(ChatGptTtsServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ChatGptTtsServiceImpl.class);
 
-  private final OpenAiAudioSpeechModel openAiAudioSpeechModel;
+    private final OpenAiAudioSpeechModel openAiAudioSpeechModel;
 
-  @Override
-  public byte[] synthesize(String text) {
-    log.info("Synthesizing text {}", text);
+    @Override
+    public byte[] synthesize(String text) {
+        log.info("Synthesizing text {}", text);
 
-    return openAiAudioSpeechModel.call(text);
-  }
+        return openAiAudioSpeechModel.call(text);
+    }
 }

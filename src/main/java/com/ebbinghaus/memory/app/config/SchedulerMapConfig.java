@@ -15,9 +15,8 @@ import static com.ebbinghaus.memory.app.utils.Constants.QUIZ_REMAINDER;
 public class SchedulerMapConfig {
 
     @Bean
-    public Map<String, SchedulerStrategy> schedulerMap(QuizRemainderStrategy quizRemainderStrategy,
-                                                       MessageSchedulerStrategy messageSchedulerStrategy) {
-        return Map.of(QUIZ_REMAINDER, quizRemainderStrategy,
-                DEFAULT, messageSchedulerStrategy);
+    public Map<String, SchedulerStrategy> schedulerMap(
+            QuizRemainderStrategy quizRemainderStrategy, MessageSchedulerStrategy messageSchedulerStrategy) {
+        return Map.of(QUIZ_REMAINDER, quizRemainderStrategy, DEFAULT, messageSchedulerStrategy);
     }
 }

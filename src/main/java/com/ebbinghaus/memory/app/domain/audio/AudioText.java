@@ -22,6 +22,7 @@ public class AudioText {
     @SequenceGenerator(name = "e_audio_text_seq", sequenceName = "e_audio_text_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "e_audio_text_seq")
     private Long id;
+
     private Long userId;
     private Long messageId;
     private String audioId;

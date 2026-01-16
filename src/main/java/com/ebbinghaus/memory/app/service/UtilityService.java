@@ -4,9 +4,9 @@ import com.ebbinghaus.memory.app.domain.EMessage;
 
 public interface UtilityService {
 
-  void removeSchedulerTrigger(Long id, Long chatId);
+    void removeSchedulerTrigger(Long id, Long chatId);
 
-  void removeSchedulerTrigger(String key);
+    void removeSchedulerTrigger(String key);
 
-  void rescheduleJob(EMessage message, Long chatId);
+    void rescheduleJob(EMessage message, Long chatId);
 }

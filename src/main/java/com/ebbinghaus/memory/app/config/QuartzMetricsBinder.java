@@ -15,22 +15,22 @@ import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
 @RequiredArgsConstructor
 public class QuartzMetricsBinder implements MeterBinder {
 
-  private final Scheduler scheduler;
+    private final Scheduler scheduler;
 
-  @Override
-  public void bindTo(@NotNull MeterRegistry registry) {
-    Gauge.builder(
-            "quartz.jobs.total",
-            scheduler,
-            s -> doTry(() -> s.getJobKeys(GroupMatcher.anyGroup()).size()))
-        .description("Total number of Quartz jobs")
-        .register(registry);
+    @Override
+    public void bindTo(@NotNull MeterRegistry registry) {
+        Gauge.builder(
+                        "quartz.jobs.total",
+                        scheduler,
+                        s -> doTry(() -> s.getJobKeys(GroupMatcher.anyGroup()).size()))
+                .description("Total number of Quartz jobs")
+                .register(registry);
 
-    Gauge.builder(
-            "quartz.jobs.executing",
-            scheduler,
-            s -> doTry(() -> s.getCurrentlyExecutingJobs().size()))
-        .description("Currently executing Quartz jobs")
-        .register(registry);
-  }
+        Gauge.builder(
+                        "quartz.jobs.executing",
+                        scheduler,
+                        s -> doTry(() -> s.getCurrentlyExecutingJobs().size()))
+                .description("Currently executing Quartz jobs")
+                .register(registry);
+    }
 }

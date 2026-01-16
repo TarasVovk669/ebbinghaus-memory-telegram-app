@@ -5,6 +5,7 @@ import com.ebbinghaus.memory.app.model.AiQuestionTuple;
 import com.ebbinghaus.memory.app.model.QuestionsWrapper;
 import com.ebbinghaus.memory.app.service.AiService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,15 +29,14 @@ import static java.time.ZoneOffset.UTC;
 public class AiServiceImpl implements AiService {
 
     private static final Logger log = LoggerFactory.getLogger(AiServiceImpl.class);
-
-    @Value("classpath:templates/quiz-prompt.st")
-    private Resource quizPrompt;
-
     private final RetryTemplate quizJsonProcessorRetryTemplate;
     private final OpenAiChatModel openAiChatModel;
     private final ObjectMapper objectMapper;
+    @Value("classpath:templates/quiz-prompt.st")
+    private Resource quizPrompt;
 
     @Override
+    @RateLimiter(name = "openai")
     public AiQuestionTuple sendRequest(String text, String languageCode) {
         var template = new PromptTemplate(quizPrompt);
         var prompt = template.create(Map.of("input_text", text,

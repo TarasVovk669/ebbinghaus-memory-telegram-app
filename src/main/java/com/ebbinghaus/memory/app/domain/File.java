@@ -16,10 +16,10 @@ import lombok.NoArgsConstructor;
 @Embeddable
 public class File {
 
-  @Column(name = "file_id")
-  private String fileId;
+    @Column(name = "file_id")
+    private String fileId;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "file_type")
-  private FileType fileType;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "file_type")
+    private FileType fileType;
 }

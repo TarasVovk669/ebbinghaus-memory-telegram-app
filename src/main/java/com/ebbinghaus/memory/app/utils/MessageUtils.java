@@ -28,19 +28,16 @@ public class MessageUtils {
             boolean addSuffix,
             String suffixValue,
             ObjectMapper objectMapper) {
-        var entities =
-                new ArrayList<>(
-                        messageEntities.stream()
-                                .map(me -> doTry(() -> objectMapper.readValue(me, MessageEntity.class)))
-                                .toList());
+        var entities = new ArrayList<>(messageEntities.stream()
+                .map(me -> doTry(() -> objectMapper.readValue(me, MessageEntity.class)))
+                .toList());
 
         if (addSuffix) {
-            entities.add(
-                    MessageEntity.builder()
-                            .type(BOLD_STYLE)
-                            .offset(messageString.lastIndexOf(suffixValue))
-                            .length(suffixValue.length())
-                            .build());
+            entities.add(MessageEntity.builder()
+                    .type(BOLD_STYLE)
+                    .offset(messageString.lastIndexOf(suffixValue))
+                    .length(suffixValue.length())
+                    .build());
         }
 
         return entities;
@@ -52,8 +49,7 @@ public class MessageUtils {
             Integer maxLength,
             String suffix,
             ObjectMapper objectMapper) {
-        return manageMessageEntitiesShortMessage(
-                messageEntities, messageString, maxLength, suffix, objectMapper, true);
+        return manageMessageEntitiesShortMessage(messageEntities, messageString, maxLength, suffix, objectMapper, true);
     }
 
     public static List<MessageEntity> manageMessageEntitiesShortMessage(
@@ -66,12 +62,11 @@ public class MessageUtils {
         var entities = new ArrayList<>(getMessageEntities(messageEntities, maxLength, objectMapper));
 
         if (addSuffix) {
-            entities.add(
-                    MessageEntity.builder()
-                            .type(BOLD_STYLE)
-                            .offset(messageString.lastIndexOf(suffix))
-                            .length(suffix.length())
-                            .build());
+            entities.add(MessageEntity.builder()
+                    .type(BOLD_STYLE)
+                    .offset(messageString.lastIndexOf(suffix))
+                    .length(suffix.length())
+                    .build());
         }
         return entities;
     }
@@ -85,19 +80,16 @@ public class MessageUtils {
             boolean addSuffix,
             int offsetShift) {
 
-        var entities = new ArrayList<>(
-                getMessageEntities(messageEntities, maxLength, objectMapper)
-                        .stream()
-                        .peek(e -> e.setOffset(e.getOffset() + offsetShift))
-                        .toList());
+        var entities = new ArrayList<>(getMessageEntities(messageEntities, maxLength, objectMapper).stream()
+                .peek(e -> e.setOffset(e.getOffset() + offsetShift))
+                .toList());
 
-        if(offsetShift!=0){
-            entities.add(
-                    MessageEntity.builder()
-                            .type(BOLD_STYLE)
-                            .offset(0)
-                            .length(offsetShift)
-                            .build());
+        if (offsetShift != 0) {
+            entities.add(MessageEntity.builder()
+                    .type(BOLD_STYLE)
+                    .offset(0)
+                    .length(offsetShift)
+                    .build());
         }
 
         if (addSuffix) {
@@ -113,20 +105,15 @@ public class MessageUtils {
     public static List<MessageEntity> getMessageEntities(
             Collection<EMessageEntity> messageEntities, Integer maxLength, ObjectMapper objectMapper) {
         return Optional.ofNullable(messageEntities)
-                .map(
-                        mes ->
-                                mes.stream()
-                                        .map(
-                                                me ->
-                                                        doTry(() -> objectMapper.readValue(me.getValue(), MessageEntity.class)))
-                                        .filter(me -> me.getOffset() < maxLength)
-                                        .peek(
-                                                me -> {
-                                                    if (me.getOffset() + me.getLength() > maxLength) {
-                                                        me.setLength(maxLength - me.getOffset());
-                                                    }
-                                                })
-                                        .toList())
+                .map(mes -> mes.stream()
+                        .map(me -> doTry(() -> objectMapper.readValue(me.getValue(), MessageEntity.class)))
+                        .filter(me -> me.getOffset() < maxLength)
+                        .peek(me -> {
+                            if (me.getOffset() + me.getLength() > maxLength) {
+                                me.setLength(maxLength - me.getOffset());
+                            }
+                        })
+                        .toList())
                 .orElse(Collections.emptyList());
     }
 
@@ -211,15 +198,13 @@ public class MessageUtils {
         }
 
         if (isExecutionTime) {
-            result
-                    .append("\n\n")
+            result.append("\n\n")
                     .append(valueSuffix)
-                    .append(
-                            formatDuration(
-                                    LocalDateTime.now(UTC),
-                                    message.getNextExecutionDateTime(),
-                                    languageCode,
-                                    messageSourceService));
+                    .append(formatDuration(
+                            LocalDateTime.now(UTC),
+                            message.getNextExecutionDateTime(),
+                            languageCode,
+                            messageSourceService));
         }
 
         return result.toString();
@@ -227,18 +212,16 @@ public class MessageUtils {
 
     public static Set<Category> getCategories(InputUserData userData, boolean isForwardedMessage) {
         return Optional.ofNullable(userData.getMessageEntities())
-                .map(
-                        entities -> {
-                            Set<Category> hashtags =
-                                    entities.stream()
-                                            .filter(me -> me.getType().equals("hashtag"))
-                                            .map(MessageEntity::getText)
-                                            .distinct()
-                                            .map(category -> Category.builder().name(category).build())
-                                            .collect(Collectors.toSet());
+                .map(entities -> {
+                    Set<Category> hashtags = entities.stream()
+                            .filter(me -> me.getType().equals("hashtag"))
+                            .map(MessageEntity::getText)
+                            .distinct()
+                            .map(category -> Category.builder().name(category).build())
+                            .collect(Collectors.toSet());
 
-                            return !hashtags.isEmpty() ? hashtags : manageDefaultCategory(isForwardedMessage);
-                        })
+                    return !hashtags.isEmpty() ? hashtags : manageDefaultCategory(isForwardedMessage);
+                })
                 .orElse(manageDefaultCategory(isForwardedMessage));
     }
 
@@ -269,6 +252,8 @@ public class MessageUtils {
     }
 
     private static Set<Category> manageDefaultCategory(boolean isForwardedMessage) {
-        return Set.of(Category.builder().name(isForwardedMessage ? FORWARDED : UNCATEGORIZED).build());
+        return Set.of(Category.builder()
+                .name(isForwardedMessage ? FORWARDED : UNCATEGORIZED)
+                .build());
     }
 }

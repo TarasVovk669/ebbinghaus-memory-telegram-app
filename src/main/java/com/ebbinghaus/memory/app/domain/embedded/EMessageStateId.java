@@ -18,10 +18,10 @@ import java.io.Serializable;
 @Embeddable
 public class EMessageStateId implements Serializable {
 
-  private Long userId;
+    private Long userId;
 
-  private Long chatId;
+    private Long chatId;
 
-  @Enumerated(EnumType.STRING)
-  private UserState state;
+    @Enumerated(EnumType.STRING)
+    private UserState state;
 }

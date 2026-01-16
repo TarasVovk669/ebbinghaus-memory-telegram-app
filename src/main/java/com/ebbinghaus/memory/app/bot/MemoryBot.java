@@ -5,6 +5,9 @@ import com.ebbinghaus.memory.app.model.InputUserData;
 import com.ebbinghaus.memory.app.service.TelegramBotService;
 import com.ebbinghaus.memory.app.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
@@ -12,6 +15,8 @@ import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
+
+import java.util.UUID;
 
 import static com.ebbinghaus.memory.app.model.UserState.WAIT_FORWARDED_MESSAGE;
 import static com.ebbinghaus.memory.app.utils.Constants.*;
@@ -21,113 +26,134 @@ import static com.ebbinghaus.memory.app.utils.ObjectUtils.doTry;
 @Component
 public class MemoryBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
-  private final String token;
-  private final String ownerName;
-  private final UserService userService;
-  private final ObjectMapper objectMapper;
-  private final TelegramBotService telegramBotService;
+    private final String token;
+    private final String ownerName;
+    private final UserService userService;
+    private final ObjectMapper objectMapper;
+    private final TelegramBotService telegramBotService;
 
-  public MemoryBot(
-      @Value("${bot.token}") String token,
-      @Value("${bot.owner}") String ownerName,
-      UserService userService,
-      ObjectMapper objectMapper,
-      TelegramBotService telegramBotService) {
-    this.token = token;
-    this.ownerName = ownerName;
-    this.userService = userService;
-    this.objectMapper = objectMapper;
-    this.telegramBotService = telegramBotService;
-  }
+    private final Timer msgTimer;
+    private final Timer callbackTimer;
+    private final Timer editTimer;
 
-  @Override
-  public String getBotToken() {
-    return token;
-  }
+    public MemoryBot(
+            @Value("${bot.token}") String token,
+            @Value("${bot.owner}") String ownerName,
+            UserService userService,
+            ObjectMapper objectMapper,
+            TelegramBotService telegramBotService,
+            MeterRegistry meterRegistry) {
+        this.token = token;
+        this.ownerName = ownerName;
+        this.userService = userService;
+        this.objectMapper = objectMapper;
+        this.telegramBotService = telegramBotService;
 
-  @Override
-  public LongPollingUpdateConsumer getUpdatesConsumer() {
-    return this;
-  }
-
-  @Override
-  public void consume(Update update) {
-    switch (update) {
-      case Update u when u.hasMessage() -> {
-        var msgType = manageMsgType(update.getMessage());
-        var isForwardedMessage =
-                null != update.getMessage().getForwardOrigin()
-                        || null != update.getMessage().getForwardFromMessageId()
-                        || null != update.getMessage().getForwardDate();
-
-        var inputUserData =
-                InputUserData.builder()
-                        .messageType(msgType)
-                        .chatId(update.getMessage().getChatId())
-                        .user(update.getMessage().getFrom())
-                        .messageId(update.getMessage().getMessageId())
-                        .file(msgType.getFile(update.getMessage()))
-                        .messageEntities(msgType.getMsgEntities(update.getMessage()))
-                        .messageText(msgType.getMsgText(update.getMessage()))
-                        .isForwardedMessage(isForwardedMessage)
-                        .languageCode(
-                                userService
-                                        .findUser(update.getMessage().getFrom().getId())
-                                        .map(EUser::getLanguageCode)
-                                        .orElse(update.getMessage().getFrom().getLanguageCode()))
-                        .state(
-                                isForwardedMessage
-                                        ? WAIT_FORWARDED_MESSAGE
-                                        : userService.getUserState(update.getMessage().getFrom().getId()))
-                        .build();
-
-        telegramBotService.processInputCallback(inputUserData);
-      }
-      case Update u when u.hasCallbackQuery() -> {
-        var inputMessage = (Message) update.getCallbackQuery().getMessage();
-        var msgType = manageMsgType(inputMessage);
-        var callBackData =
-                doTry(() -> objectMapper.readValue(update.getCallbackQuery().getData(), MAP_TYPE_REF));
-
-        var inputUserData =
-                InputUserData.builder()
-                        .messageType(msgType)
-                        .chatId(update.getCallbackQuery().getMessage().getChatId())
-                        .callBackData(callBackData)
-                        .user(update.getCallbackQuery().getFrom())
-                        .file(msgType.getFile(inputMessage))
-                        .ownerName(ownerName)
-                        .languageCode(
-                                userService
-                                        .getUser(update.getCallbackQuery().getFrom().getId())
-                                        .getLanguageCode())
-                        .state(userService.getUserState(update.getCallbackQuery().getFrom().getId()))
-                        .messageId(update.getCallbackQuery().getMessage().getMessageId())
-                        .build();
-
-        telegramBotService.processButtonMessageCallback(callBackData.get(OPERATION), inputUserData);
-      }
-      case Update u when u.hasEditedMessage() -> {
-        var inputMessage = update.getEditedMessage();
-        var msgType = manageMsgType(inputMessage);
-
-        var inputUserData =
-                InputUserData.builder()
-                        .messageType(msgType)
-                        .messageEntities(msgType.getMsgEntities(inputMessage))
-                        .messageText(msgType.getMsgText(inputMessage))
-                        .chatId(inputMessage.getChatId())
-                        .file(msgType.getFile(inputMessage))
-                        .user(inputMessage.getFrom())
-                        .ownerName(ownerName)
-                        .languageCode(userService.getUser(inputMessage.getFrom().getId()).getLanguageCode())
-                        .state(userService.getUserState(inputMessage.getFrom().getId()))
-                        .messageId(inputMessage.getMessageId())
-                        .build();
-
-        telegramBotService.processEditMessageCallback(EDIT_CONCRETE_MESSAGE_CALLBACK, inputUserData);
-      }
-      default -> throw new IllegalStateException("Unexpected value: " + update);
+        this.msgTimer =
+                Timer.builder("bot.update.process").tag("type", "message").register(meterRegistry);
+        this.callbackTimer =
+                Timer.builder("bot.update.process").tag("type", "callback").register(meterRegistry);
+        this.editTimer = Timer.builder("bot.update.process").tag("type", "edit").register(meterRegistry);
     }
-  }
+
+    @Override
+    public String getBotToken() {
+        return token;
+    }
+
+    @Override
+    public LongPollingUpdateConsumer getUpdatesConsumer() {
+        return this;
+    }
+
+    @Override
+    public void consume(Update update) {
+        MDC.put("traceId", UUID.randomUUID().toString());
+        try {
+            switch (update) {
+                case Update u
+                when u.hasMessage() -> {
+                    var msgType = manageMsgType(update.getMessage());
+                    var isForwardedMessage = null != update.getMessage().getForwardOrigin()
+                            || null != update.getMessage().getForwardFromMessageId()
+                            || null != update.getMessage().getForwardDate();
+
+                    var inputUserData = InputUserData.builder()
+                            .messageType(msgType)
+                            .chatId(update.getMessage().getChatId())
+                            .user(update.getMessage().getFrom())
+                            .messageId(update.getMessage().getMessageId())
+                            .file(msgType.getFile(update.getMessage()))
+                            .messageEntities(msgType.getMsgEntities(update.getMessage()))
+                            .messageText(msgType.getMsgText(update.getMessage()))
+                            .isForwardedMessage(isForwardedMessage)
+                            .languageCode(userService
+                                    .findUser(update.getMessage().getFrom().getId())
+                                    .map(EUser::getLanguageCode)
+                                    .orElse(update.getMessage().getFrom().getLanguageCode()))
+                            .state(
+                                    isForwardedMessage
+                                            ? WAIT_FORWARDED_MESSAGE
+                                            : userService.getUserState(update.getMessage()
+                                                    .getFrom()
+                                                    .getId()))
+                            .build();
+
+                    msgTimer.record(() -> telegramBotService.processInputCallback(inputUserData));
+                }
+                case Update u
+                when u.hasCallbackQuery() -> {
+                    var inputMessage = (Message) update.getCallbackQuery().getMessage();
+                    var msgType = manageMsgType(inputMessage);
+                    var callBackData = doTry(() ->
+                            objectMapper.readValue(update.getCallbackQuery().getData(), MAP_TYPE_REF));
+
+                    var inputUserData = InputUserData.builder()
+                            .messageType(msgType)
+                            .chatId(update.getCallbackQuery().getMessage().getChatId())
+                            .callBackData(callBackData)
+                            .user(update.getCallbackQuery().getFrom())
+                            .file(msgType.getFile(inputMessage))
+                            .ownerName(ownerName)
+                            .languageCode(userService
+                                    .getUser(update.getCallbackQuery().getFrom().getId())
+                                    .getLanguageCode())
+                            .state(userService.getUserState(
+                                    update.getCallbackQuery().getFrom().getId()))
+                            .messageId(update.getCallbackQuery().getMessage().getMessageId())
+                            .build();
+
+                    callbackTimer.record(() -> telegramBotService.processButtonMessageCallback(
+                            callBackData.get(OPERATION), inputUserData));
+                }
+                case Update u
+                when u.hasEditedMessage() -> {
+                    var inputMessage = update.getEditedMessage();
+                    var msgType = manageMsgType(inputMessage);
+
+                    var inputUserData = InputUserData.builder()
+                            .messageType(msgType)
+                            .messageEntities(msgType.getMsgEntities(inputMessage))
+                            .messageText(msgType.getMsgText(inputMessage))
+                            .chatId(inputMessage.getChatId())
+                            .file(msgType.getFile(inputMessage))
+                            .user(inputMessage.getFrom())
+                            .ownerName(ownerName)
+                            .languageCode(userService
+                                    .getUser(inputMessage.getFrom().getId())
+                                    .getLanguageCode())
+                            .state(userService.getUserState(
+                                    inputMessage.getFrom().getId()))
+                            .messageId(inputMessage.getMessageId())
+                            .build();
+
+                    editTimer.record(() -> telegramBotService.processEditMessageCallback(
+                            EDIT_CONCRETE_MESSAGE_CALLBACK, inputUserData));
+                }
+                default -> throw new IllegalStateException("Unexpected value: " + update);
+            }
+        } finally {
+            MDC.clear();
+        }
+    }
 }

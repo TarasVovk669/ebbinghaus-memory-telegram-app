@@ -12,15 +12,13 @@ public class OpenAiSpeechConfig {
 
     @Bean
     public OpenAiAudioSpeechModel speechModel(@Value("${spring.ai.openai.api-key}") String apiKey) {
-        var opts =
-                OpenAiAudioSpeechOptions.builder()
-                        .model("tts-1-hd")
-                        .voice(OpenAiAudioApi.SpeechRequest.Voice.ALLOY)
-                        .responseFormat(OpenAiAudioApi.SpeechRequest.AudioResponseFormat.MP3)
-                        .speed(1.0f)
-                        .build();
-        return new OpenAiAudioSpeechModel(OpenAiAudioApi.builder()
-                .apiKey(apiKey)
-                .build(), opts);
+        var opts = OpenAiAudioSpeechOptions.builder()
+                .model("tts-1-hd")
+                .voice(OpenAiAudioApi.SpeechRequest.Voice.ALLOY)
+                .responseFormat(OpenAiAudioApi.SpeechRequest.AudioResponseFormat.MP3)
+                .speed(1.0f)
+                .build();
+        return new OpenAiAudioSpeechModel(
+                OpenAiAudioApi.builder().apiKey(apiKey).build(), opts);
     }
 }

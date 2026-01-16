@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class WeeklyQuizSchedulerServiceImpl  {
+public class WeeklyQuizSchedulerServiceImpl {
 
     private final SchedulerService schedulerService;
 

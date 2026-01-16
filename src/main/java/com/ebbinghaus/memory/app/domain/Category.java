@@ -20,20 +20,22 @@ import java.util.Set;
 @Table(name = "e_category")
 public class Category {
 
-  @Id
-  @SequenceGenerator(name = "e_category_seq", sequenceName = "e_category_seq", allocationSize = 1)
-  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "e_category_seq")
-  private Long id;
+    @Id
+    @SequenceGenerator(name = "e_category_seq", sequenceName = "e_category_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "e_category_seq")
+    private Long id;
 
-  private String name;
+    private String name;
 
-  private Long ownerId;
+    private Long ownerId;
 
-  @OneToMany
-  @JoinColumn(name = "category_id")
-  private Set<EMessageCategory> messageCategories = new HashSet<>();
+    @OneToMany
+    @JoinColumn(name = "category_id")
+    private Set<EMessageCategory> messageCategories = new HashSet<>();
 
-  @CreationTimestamp private LocalDateTime createdDateTime;
+    @CreationTimestamp
+    private LocalDateTime createdDateTime;
 
-  @UpdateTimestamp private LocalDateTime updatedDateTime;
+    @UpdateTimestamp
+    private LocalDateTime updatedDateTime;
 }

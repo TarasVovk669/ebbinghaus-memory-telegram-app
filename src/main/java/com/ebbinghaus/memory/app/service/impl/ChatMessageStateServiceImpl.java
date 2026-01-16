@@ -18,9 +18,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class ChatMessageStateServiceImpl implements ChatMessageStateService {
 
-  private static final Logger log = LoggerFactory.getLogger(ChatMessageStateServiceImpl.class);
   public static final HashSet<Integer> HASH_SET = new HashSet<>();
-
+  private static final Logger log = LoggerFactory.getLogger(ChatMessageStateServiceImpl.class);
   private final MessageStateRepository messageStateRepository;
 
   @Override
