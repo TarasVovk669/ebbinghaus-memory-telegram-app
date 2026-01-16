@@ -20,6 +20,11 @@
         BOT_OWNER: ${EMTB_BOT_OWNER}
         APP_PORT: ${EMTB_APP_PORT}
         JAVA_TOOL_OPTIONS: ${EMTB_JAVA_OPTS}
+        LOKI_URL: ${LOKI_URL}
+        ACTUATOR_USER: ${ACTUATOR_USER}
+        ACTUATOR_PASSWORD: ${ACTUATOR_PASSWORD}
+        APPLICATION_LOG_APPENDER: ${APPLICATION_LOG_APPENDER}
+        AI_API_KEY: ${AI_API_KEY}
       ports:
         - ${EMTB_APP_EXTERNAL_PORT}:${EMTB_APP_PORT}
       networks:
@@ -31,7 +36,7 @@
       container_name: postgres_emtb
       image: postgres:16
       volumes:
-        - postgres_data:/var/lib/postgres/emtb
+        - postgres_data:/var/lib/postgresql/data
       environment:
         POSTGRES_DB: ${EMTB_DB_NAME}
         POSTGRES_USER: ${EMTB_DB_USERNAME}
@@ -41,6 +46,27 @@
       networks:
         - emtb
       restart: unless-stopped
+    postgres_emtb_backup:
+      image: prodrigestivill/postgres-backup-local:latest
+      container_name: postgres_emtb_backup
+      depends_on:
+        - postgres_emtb
+      networks:
+        - emtb
+      restart: unless-stopped
+      environment:
+        TZ: Europe/Warsaw
+        POSTGRES_HOST: postgres_emtb
+        POSTGRES_DB: ${EMTB_DB_NAME}
+        POSTGRES_USER: ${EMTB_DB_USERNAME}
+        POSTGRES_PASSWORD: ${EMTB_DB_PASSWORD}
+        SCHEDULE: "0 2 * * *"
+        BACKUP_KEEP_DAYS: "2"
+        BACKUP_KEEP_WEEKS: "0"
+        BACKUP_KEEP_MONTHS: "0"
+        BACKUP_ON_START: "FALSE"
+      volumes:
+        - /root/backups/postgres/mmr_bt:/backups
   volumes:
     postgres_data:
       driver: local
