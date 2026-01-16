@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.5</version>
+        <version>3.5.9</version>
         <relativePath/>
     </parent>
     <groupId>com.ebbinghaus.memory.app</groupId>
@@ -16,7 +16,7 @@
     <properties>
         <java.version>21</java.version>
         <spring-ai.version>1.0.0</spring-ai.version>
-        <telegram.version>7.2.0</telegram.version>
+        <telegram.version>9.2.1</telegram.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -46,8 +46,6 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
-
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
@@ -106,6 +104,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>8.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.janino</groupId>
+            <artifactId>janino</artifactId>
+            <version>3.1.12</version>
         </dependency>
     </dependencies>
 

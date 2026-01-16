@@ -1,12 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <variable name="LOG_APPENDER" value="${APPLICATION_LOG_APPENDER:-STDOUT}"/>
+
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] traceId=%X{traceId} chatId=%X{chatId} userId=%X{userId} %logger{36} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] traceId=%X{traceId} %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <root level="INFO">
-        <appender-ref ref="CONSOLE" />
+    <appender name="JSON_STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+
+            <fieldNames>
+                <timestamp>timestamp</timestamp>
+                <logger>logger</logger>
+                <thread>thread</thread>
+                <levelValue>[ignore]</levelValue>
+                <version>[ignore]</version>
+            </fieldNames>
+        </encoder>
+    </appender>
+
+    <root level="${APPLICATION_LOG_LEVEL:-info}">
+        <appender-ref ref="${LOG_APPENDER}"/>
     </root>
 </configuration>

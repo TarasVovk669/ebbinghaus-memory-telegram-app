@@ -48,7 +48,6 @@ public class TelegramBotServiceImpl implements TelegramBotService {
 
     private TtsService ttsService;
     private AudioService audioService;
-    private Executor ioTaskExecutor;
     private Executor virtualTaskExecutor;
     private QuizService quizService;
     private final Function<InputUserData, Boolean> handleQuizQuestion = userData -> {
@@ -182,7 +181,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
                         .messageId(userData.getMessageId())
                         .build());
 
-        ioTaskExecutor.execute(() -> quizService.process(userData));
+        virtualTaskExecutor.execute(() -> quizService.process(userData));
         return Boolean.TRUE;
     };
     private final Function<InputUserData, Boolean> handleMessageBack = userData -> {
@@ -369,7 +368,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
                         messageSourceService.getMessage(
                                 "messages.audio.synthesize.in-progress", userData.getLanguageCode()));
 
-                ioTaskExecutor.execute(() -> {
+                virtualTaskExecutor.execute(() -> {
                     var messageId = Long.valueOf(userData.getMessageId());
                     try {
                         var bytes = ttsService.synthesize(messageService
@@ -861,7 +860,6 @@ public class TelegramBotServiceImpl implements TelegramBotService {
     };
 
     public TelegramBotServiceImpl(
-            @Qualifier("ioTaskExecutor") Executor ioTaskExecutor,
             @Qualifier("virtualTaskExecutor") Executor virtualTaskExecutor,
             QuizService quizService,
             UserService userService,
@@ -877,7 +875,6 @@ public class TelegramBotServiceImpl implements TelegramBotService {
             AudioService audioService) {
         this.ttsService = ttsService;
         this.audioService = audioService;
-        this.ioTaskExecutor = ioTaskExecutor;
         this.virtualTaskExecutor = virtualTaskExecutor;
         this.quizService = quizService;
         this.userService = userService;
