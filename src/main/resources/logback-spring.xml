@@ -24,7 +24,42 @@
         </encoder>
     </appender>
 
+    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+        <labels>app=ebbinghaus-memory-telegram-app</labels>
+        <structuredMetadata>off</structuredMetadata>
+
+        <message class="com.github.loki4j.logback.JsonLayout">
+            <timestamp>
+                <fieldName>timestamp</fieldName>
+            </timestamp>
+            <loggerName>
+                <fieldName>logger</fieldName>
+            </loggerName>
+            <threadName>
+                <fieldName>thread</fieldName>
+            </threadName>
+            <logLevel>
+                <fieldName>level</fieldName>
+            </logLevel>
+            <mdc>
+                <noPrefix>true</noPrefix>
+                <include>traceId</include>
+            </mdc>
+        </message>
+
+        <http>
+            <url>${LOKI_URL}</url>
+            <requestTimeoutMs>15000</requestTimeoutMs>
+        </http>
+
+        <batch>
+            <maxBytes>65536</maxBytes>
+        </batch>
+    </appender>
+
+
     <root level="${APPLICATION_LOG_LEVEL:-info}">
         <appender-ref ref="${LOG_APPENDER}"/>
+        <appender-ref ref="LOKI"/>
     </root>
 </configuration>

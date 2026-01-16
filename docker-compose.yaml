@@ -11,7 +11,7 @@
       volumes:
         - local:/var/lib/ebbinghaus-memory-bot/
       environment:
-        DB_HOST: ${EMTB_DB_HOST}
+        DB_HOST: postgres_emtb
         DB_NAME: ${EMTB_DB_NAME}
         DB_USERNAME: ${EMTB_DB_USERNAME}
         DB_PASSWORD: ${EMTB_DB_PASSWORD}
@@ -37,9 +37,10 @@
         POSTGRES_USER: ${EMTB_DB_USERNAME}
         POSTGRES_PASSWORD: ${EMTB_DB_PASSWORD}
       ports:
-        - ${DB_EMTB_EXTERNAL_PORT}:5432
+        - 127.0.0.1:${DB_EMTB_EXTERNAL_PORT}:5432
       networks:
         - emtb
+      restart: unless-stopped
   volumes:
     postgres_data:
       driver: local

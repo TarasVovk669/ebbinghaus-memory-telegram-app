@@ -1,6 +1,10 @@
 spring:
   application:
     name: ebbinghaus-memory-telegram-app
+  security:
+    user:
+      name: ${ACTUATOR_USER:metrics}
+      password: ${ACTUATOR_PASSWORD:secret}
   datasource:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
