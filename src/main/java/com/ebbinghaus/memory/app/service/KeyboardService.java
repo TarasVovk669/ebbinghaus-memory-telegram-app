@@ -16,6 +16,8 @@ public interface KeyboardService {
 
   InlineKeyboardMarkup getQuizRemainderKeyboard(Long messageId, String languageCode);
 
+  InlineKeyboardMarkup getExplainItBackContinueKeyboard(String languageCode);
+
   InlineKeyboardMarkup getViewKeyboard(
       Long messageId, String languageCode, boolean isForwardedMessage, boolean isSimpleMessage);
 

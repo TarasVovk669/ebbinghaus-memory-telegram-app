@@ -101,7 +101,37 @@ public class KeyboardServiceImpl implements KeyboardService {
                                                                         objectMapper.writeValueAsString(
                                                                                 Map.ofEntries(
                                                                                         Map.entry(OPERATION, QUIZ_REMAINDER_MESSAGE_NO_CALLBACK),
-                                                                                        Map.entry(MESSAGE_ID, messageId)))))
+                                                                                    Map.entry(MESSAGE_ID, messageId)))))
+                                                .build()))));
+    }
+
+    @Override
+    public InlineKeyboardMarkup getExplainItBackContinueKeyboard(String languageCode) {
+        return new InlineKeyboardMarkup(
+                List.of(
+                        new InlineKeyboardRow(
+                                List.of(
+                                        InlineKeyboardButton.builder()
+                                                .text(
+                                                        messageSourceService.getMessage(
+                                                                "messages.delete.confirmation.yes", languageCode))
+                                                .callbackData(
+                                                        doTry(
+                                                                () ->
+                                                                        objectMapper.writeValueAsString(
+                                                                                Map.ofEntries(
+                                                                                        Map.entry(OPERATION, EXPLAIN_IT_BACK_CONTINUE_YES_CALLBACK)))))
+                                                .build(),
+                                        InlineKeyboardButton.builder()
+                                                .text(
+                                                        messageSourceService.getMessage(
+                                                                "messages.delete.confirmation.no", languageCode))
+                                                .callbackData(
+                                                        doTry(
+                                                                () ->
+                                                                        objectMapper.writeValueAsString(
+                                                                                Map.ofEntries(
+                                                                                        Map.entry(OPERATION, EXPLAIN_IT_BACK_CONTINUE_NO_CALLBACK)))))
                                                 .build()))));
     }
 
@@ -152,6 +182,20 @@ public class KeyboardServiceImpl implements KeyboardService {
                                                             objectMapper.writeValueAsString(
                                                                     Map.ofEntries(
                                                                             Map.entry(OPERATION, TEXT_TO_SPEECH_CALLBACK),
+                                                                            Map.entry(MESSAGE_ID, messageId)))))
+                                    .build()));
+        }
+        if (isSimpleMessage) {
+            rowInline.add(
+                    new InlineKeyboardRow(
+                            InlineKeyboardButton.builder()
+                                    .text(messageSourceService.getMessage("messages.navigation.explain", languageCode))
+                                    .callbackData(
+                                            doTry(
+                                                    () ->
+                                                            objectMapper.writeValueAsString(
+                                                                    Map.ofEntries(
+                                                                            Map.entry(OPERATION, EXPLAIN_IT_BACK_CALLBACK),
                                                                             Map.entry(MESSAGE_ID, messageId)))))
                                     .build()));
         }

@@ -16,7 +16,7 @@ public class OpenAiSpeechConfig {
                 .model("tts-1-hd")
                 .voice(OpenAiAudioApi.SpeechRequest.Voice.ALLOY)
                 .responseFormat(OpenAiAudioApi.SpeechRequest.AudioResponseFormat.MP3)
-                .speed(1.0f)
+                .speed(1.0d)
                 .build();
         return new OpenAiAudioSpeechModel(
                 OpenAiAudioApi.builder().apiKey(apiKey).build(), opts);

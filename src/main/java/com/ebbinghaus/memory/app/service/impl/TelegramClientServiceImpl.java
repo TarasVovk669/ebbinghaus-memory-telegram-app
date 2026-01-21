@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.send.SendVoice;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessages;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -49,6 +50,7 @@ public class TelegramClientServiceImpl implements TelegramClientService {
     private static final String METRIC_EDIT_MESSAGE = "bot.telegram.sendEditMessage";
     private static final String METRIC_SEND_PHOTO = "bot.telegram.sendPhoto";
     private static final String METRIC_SEND_AUDIO = "bot.telegram.sendAudio";
+    private static final String METRIC_DOWNLOAD_FILE = "bot.telegram.downloadFile";
     private static final String METRIC_DELETE_MESSAGE = "bot.telegram.deleteMessage";
     private static final String METRIC_DELETE_MESSAGES = "bot.telegram.deleteMessages";
 
@@ -151,6 +153,19 @@ public class TelegramClientServiceImpl implements TelegramClientService {
                         .voice(new InputFile(new ByteArrayInputStream(audioByteArray), "speech.mp3"))
                         .replyToMessageId(replyMessageId)
                         .build())));
+    }
+
+    @Override
+    @Retry(name = "telegram")
+    public byte[] downloadFile(String fileId) {
+        return record(
+                METRIC_DOWNLOAD_FILE,
+                () -> doTryTgCall(() -> {
+                    var file = telegramClient.execute(GetFile.builder().fileId(fileId).build());
+                    try (var stream = telegramClient.downloadFileAsStream(file)) {
+                        return stream.readAllBytes();
+                    }
+                }));
     }
 
     // ----------- API (delete) - unified -----------

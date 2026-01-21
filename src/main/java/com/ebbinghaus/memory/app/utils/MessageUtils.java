@@ -123,6 +123,7 @@ public class MessageUtils {
             case Message m when m.getPhoto() != null && !m.getPhoto().isEmpty() -> MessageType.IMG;
             case Message m when m.getDocument() != null -> MessageType.DOC;
             case Message m when m.getVideo() != null -> MessageType.VIDEO;
+            case Message m when m.getVoice() != null -> MessageType.VOICE;
             default -> throw new RuntimeException("Invalid msg_type");
         };
     }
@@ -133,6 +134,7 @@ public class MessageUtils {
             case FileType.PHOTO -> MessageType.IMG;
             case FileType.DOCUMENT -> MessageType.DOC;
             case FileType.VIDEO -> MessageType.VIDEO;
+            case FileType.VOICE -> MessageType.VOICE;
         };
     }
 

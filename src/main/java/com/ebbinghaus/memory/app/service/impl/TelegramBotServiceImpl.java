@@ -5,6 +5,7 @@ import com.ebbinghaus.memory.app.domain.EMessageEntity;
 import com.ebbinghaus.memory.app.domain.EMessageType;
 import com.ebbinghaus.memory.app.model.InputUserData;
 import com.ebbinghaus.memory.app.model.MessageDataRequest;
+import com.ebbinghaus.memory.app.model.MessageType;
 import com.ebbinghaus.memory.app.model.MessageTuple;
 import com.ebbinghaus.memory.app.model.UserState;
 import com.ebbinghaus.memory.app.service.*;
@@ -25,6 +26,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -45,6 +47,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
     private static final Map<String, Function<InputUserData, Boolean>> functionCommandMap = new HashMap<>();
     private static final Map<String, Function<InputUserData, Boolean>> functionCallbackDataMap = new HashMap<>();
     private static final Map<UserState, Function<InputUserData, Boolean>> functionUserStateMap = new HashMap<>();
+    private static final Map<String, Long> explainItBackMessageMap = new ConcurrentHashMap<>();
 
     private TtsService ttsService;
     private AudioService audioService;
@@ -68,6 +71,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
     private SchedulerService schedulerService;
     private MessageSourceService messageSourceService;
     private TelegramClientService telegramClientService;
+    private ExplainItBackService explainItBackService;
     private final Function<InputUserData, Boolean> handleStartMessage = userData -> {
         userService.setUserState(userData.getUser().getId(), MAIN_MENU);
 
@@ -299,14 +303,18 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         var audioCountCF = CompletableFuture.supplyAsync(
                 () -> audioService.count(userData.getUser().getId()), virtualTaskExecutor);
 
+        var explainCountCF = CompletableFuture.supplyAsync(
+                () -> explainItBackService.count(userData.getUser().getId()), virtualTaskExecutor);
+
         var quizRemainderCF = CompletableFuture.supplyAsync(
                 () -> userService.isQuizRemainderEnabled(userData.getUser().getId()), virtualTaskExecutor);
 
-        CompletableFuture.allOf(messageAndCategoryCountCF, quizzesCountCF, audioCountCF)
+        CompletableFuture.allOf(messageAndCategoryCountCF, quizzesCountCF, audioCountCF, explainCountCF)
                 .thenApply(v -> {
                     var messageAndCategoryCount = messageAndCategoryCountCF.join();
                     var quizzesCount = quizzesCountCF.join();
                     var audioCount = audioCountCF.join();
+                    var explainCount = explainCountCF.join();
 
                     return String.format(
                             messageSourceService.getMessage("messages.profile", userData.getLanguageCode()),
@@ -315,6 +323,8 @@ public class TelegramBotServiceImpl implements TelegramBotService {
                             messageAndCategoryCount.getCategoryCount(),
                             audioCount.currentCount(),
                             audioCount.availableCount(),
+                            explainCount.currentCount(),
+                            explainCount.availableCount(),
                             quizzesCount.availableQuizCount(),
                             quizzesCount.totalCountPerDay(),
                             quizzesCount.totalFinishedQuizCount());
@@ -407,6 +417,119 @@ public class TelegramBotServiceImpl implements TelegramBotService {
                 return Boolean.FALSE;
             });
     private ChatMessageStateService chatMessageStateService;
+    private final Function<InputUserData, Boolean> handleExplainItBack = userData -> {
+        clearExplainItBackTries(userData);
+        if (!explainItBackService.canExplain(userData.getUser().getId())) {
+            doTry((() -> telegramClientService.sendEditMessage(EditMessageText.builder()
+                    .chatId(userData.getChatId())
+                    .messageId(userData.getMessageId())
+                    .text(messageSourceService.getMessage("messages.error.explain.limit", userData.getLanguageCode()))
+                    .replyMarkup(keyboardService.getSingleBackFullMessageKeyboard(
+                            userData.getLanguageCode(),
+                            Long.valueOf(userData.getCallBackData().get(MESSAGE_ID))))
+                    .build())));
+            return Boolean.FALSE;
+        }
+
+        clearMessages(userData, WAIT_EXPLAIN_IT_BACK);
+
+        var explainPrompt = telegramClientService.sendMessage(
+                userData.getChatId(),
+                messageSourceService.getMessage("messages.explain.init", userData.getLanguageCode()));
+        chatMessageStateService.addMessage(
+                userData.getUser().getId(), userData.getChatId(), WAIT_EXPLAIN_IT_BACK, List.of(explainPrompt.getMessageId()));
+
+        String key = userData.getUser().getId().toString().concat(userData.getChatId().toString());
+        explainItBackMessageMap.put(key, Long.valueOf(userData.getCallBackData().get(MESSAGE_ID)));
+        userService.setUserState(userData.getUser().getId(), WAIT_EXPLAIN_IT_BACK);
+        return Boolean.TRUE;
+    };
+    private final Function<InputUserData, Boolean> handleExplainItBackVoice = userData -> {
+        if (!MessageType.VOICE.equals(userData.getMessageType()) || userData.getFile() == null) {
+            telegramClientService.deleteMessage(userData.getChatId(), userData.getMessageId());
+            var attempts = incrementExplainItBackTries(userData);
+            clearMessages(userData, WAIT_EXPLAIN_IT_BACK);
+            if (attempts >= 2) {
+                sendExplainItBackContinuePrompt(userData);
+            } else {
+                sendExplainItBackWaitingVoice(userData);
+            }
+            return Boolean.FALSE;
+        }
+
+        clearExplainItBackTries(userData);
+        clearMessages(userData, WAIT_EXPLAIN_IT_BACK);
+        String key = userData.getUser().getId().toString().concat(userData.getChatId().toString());
+        if (!explainItBackService.canExplain(userData.getUser().getId())) {
+            explainItBackMessageMap.remove(key);
+            telegramClientService.sendMessage(
+                    userData.getChatId(),
+                    messageSourceService.getMessage("messages.error.explain.limit", userData.getLanguageCode()));
+            userService.setUserState(userData.getUser().getId(), MAIN_MENU);
+            return Boolean.FALSE;
+        }
+
+        var messageId = explainItBackMessageMap.remove(key);
+        if (messageId == null) {
+            telegramClientService.sendMessage(
+                    userData.getChatId(),
+                    messageSourceService.getMessage("messages.error.not_found", userData.getLanguageCode()));
+            userService.setUserState(userData.getUser().getId(), MAIN_MENU);
+            return Boolean.FALSE;
+        }
+
+        var receiptMessage = telegramClientService.sendMessage(
+                userData.getChatId(),
+                messageSourceService.getMessage("messages.explain.received", userData.getLanguageCode()));
+        virtualTaskExecutor.execute(() -> explainItBackService.processExplain(
+                userData.getUser().getId(),
+                userData.getChatId(),
+                messageId,
+                userData.getFile().getFileId(),
+                userData.getLanguageCode(),
+                receiptMessage.getMessageId(),
+                userData.getMessageId()));
+        userService.setUserState(userData.getUser().getId(), MAIN_MENU);
+        return Boolean.TRUE;
+    };
+    private final Function<InputUserData, Boolean> handleExplainItBackContinueYes = userData -> {
+        clearExplainItBackTries(userData);
+        telegramClientService.deleteMessage(userData.getChatId(), userData.getMessageId());
+        clearMessages(userData, WAIT_EXPLAIN_IT_BACK);
+
+        var waitMessage = telegramClientService.sendMessage(
+                userData.getChatId(),
+                messageSourceService.getMessage("messages.explain.waiting-voice", userData.getLanguageCode()));
+        chatMessageStateService.addMessage(
+                userData.getUser().getId(), userData.getChatId(), WAIT_EXPLAIN_IT_BACK, List.of(waitMessage.getMessageId()));
+        userService.setUserState(userData.getUser().getId(), WAIT_EXPLAIN_IT_BACK);
+        return Boolean.TRUE;
+    };
+    private final Function<InputUserData, Boolean> handleExplainItBackContinueNo = userData -> {
+        clearExplainItBackTries(userData);
+        telegramClientService.deleteMessage(userData.getChatId(), userData.getMessageId());
+        clearMessages(userData, WAIT_EXPLAIN_IT_BACK);
+
+        String key = userData.getUser().getId().toString().concat(userData.getChatId().toString());
+        var messageId = explainItBackMessageMap.remove(key);
+        if (messageId == null) {
+            telegramClientService.sendMessage(
+                    userData.getChatId(),
+                    messageSourceService.getMessage("messages.error.not_found", userData.getLanguageCode()));
+            userService.setUserState(userData.getUser().getId(), MAIN_MENU);
+            return Boolean.FALSE;
+        }
+
+        messageService
+                .getMessageOptional(messageId, true)
+                .ifPresentOrElse(
+                        message -> sendExplainItBackOriginalMessage(userData, message),
+                        () -> telegramClientService.sendMessage(
+                                userData.getChatId(),
+                                messageSourceService.getMessage("messages.error.not_found", userData.getLanguageCode())));
+        userService.setUserState(userData.getUser().getId(), MAIN_MENU);
+        return Boolean.TRUE;
+    };
     private final Function<InputUserData, Boolean> handleHelpMessage = userData -> {
         userService.setUserState(userData.getUser().getId(), UserState.HELP);
         clearMessages(userData, UserState.HELP);
@@ -693,14 +816,18 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         var audioCountCF = CompletableFuture.supplyAsync(
                 () -> audioService.count(userData.getUser().getId()), virtualTaskExecutor);
 
+        var explainCountCF = CompletableFuture.supplyAsync(
+                () -> explainItBackService.count(userData.getUser().getId()), virtualTaskExecutor);
+
         var quizRemainderCF = CompletableFuture.supplyAsync(
                 () -> userService.isQuizRemainderEnabled(userData.getUser().getId()), virtualTaskExecutor);
 
-        CompletableFuture.allOf(messageAndCategoryCountCF, quizzesCountCF, audioCountCF)
+        CompletableFuture.allOf(messageAndCategoryCountCF, quizzesCountCF, audioCountCF, explainCountCF)
                 .thenApply(v -> {
                     var messageAndCategoryCount = messageAndCategoryCountCF.join();
                     var quizzesCount = quizzesCountCF.join();
                     var audioCount = audioCountCF.join();
+                    var explainCount = explainCountCF.join();
 
                     return String.format(
                             messageSourceService.getMessage("messages.profile", userData.getLanguageCode()),
@@ -709,6 +836,8 @@ public class TelegramBotServiceImpl implements TelegramBotService {
                             messageAndCategoryCount.getCategoryCount(),
                             audioCount.currentCount(),
                             audioCount.availableCount(),
+                            explainCount.currentCount(),
+                            explainCount.availableCount(),
                             quizzesCount.availableQuizCount(),
                             quizzesCount.totalCountPerDay(),
                             quizzesCount.totalFinishedQuizCount());
@@ -824,6 +953,10 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         return Boolean.TRUE;
     };
     private final Function<InputUserData, Boolean> handleInputText = userData -> {
+        if (MessageType.VOICE.equals(userData.getMessageType())) {
+            manageInvalidInputMessage(userData);
+            return Boolean.FALSE;
+        }
         if (null != userData.getMessageText()
                 && !userData.getMessageType()
                         .isAllowedSize(userData.getMessageText().length())) {
@@ -872,7 +1005,8 @@ public class TelegramBotServiceImpl implements TelegramBotService {
             KeyboardService keyboardService,
             TelegramClientService telegramClientService,
             TtsService ttsService,
-            AudioService audioService) {
+            AudioService audioService,
+            ExplainItBackService explainItBackService) {
         this.ttsService = ttsService;
         this.audioService = audioService;
         this.virtualTaskExecutor = virtualTaskExecutor;
@@ -886,6 +1020,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         this.keyboardService = keyboardService;
         this.chatMessageStateService = chatMessageStateService;
         this.telegramClientService = telegramClientService;
+        this.explainItBackService = explainItBackService;
 
         functionCommandMap.put(START, handleStartMessage);
         functionCommandMap.put(HELP, handleHelpMessage);
@@ -917,6 +1052,9 @@ public class TelegramBotServiceImpl implements TelegramBotService {
         functionCallbackDataMap.put(QUIZ_QUESTION_CALLBACK, handleQuizQuestion);
         functionCallbackDataMap.put(QUIZ_NEXT_QUESTION_CALLBACK, handleQuizNextQuestion);
         functionCallbackDataMap.put(TEXT_TO_SPEECH_CALLBACK, handleTextToSpeech);
+        functionCallbackDataMap.put(EXPLAIN_IT_BACK_CALLBACK, handleExplainItBack);
+        functionCallbackDataMap.put(EXPLAIN_IT_BACK_CONTINUE_YES_CALLBACK, handleExplainItBackContinueYes);
+        functionCallbackDataMap.put(EXPLAIN_IT_BACK_CONTINUE_NO_CALLBACK, handleExplainItBackContinueNo);
         functionCallbackDataMap.put(QUIZ_REMAINDER_MESSAGE_YES_CALLBACK, handleTestMessage);
         functionCallbackDataMap.put(QUIZ_REMAINDER_MESSAGE_NO_CALLBACK, handleRemainderQuizNo);
 
@@ -925,6 +1063,7 @@ public class TelegramBotServiceImpl implements TelegramBotService {
 
         functionUserStateMap.put(WAIT_TEXT, handleInputText);
         functionUserStateMap.put(WAIT_FORWARDED_MESSAGE, handleInputText);
+        functionUserStateMap.put(WAIT_EXPLAIN_IT_BACK, handleExplainItBackVoice);
     }
 
     @Override
@@ -1027,6 +1166,72 @@ public class TelegramBotServiceImpl implements TelegramBotService {
             }
             chatMessageStateService.clearStateMessages(userData.getUser().getId(), userData.getChatId(), s);
         });
+    }
+
+    private void sendExplainItBackWaitingVoice(InputUserData userData) {
+        var message = telegramClientService.sendMessage(
+                userData.getChatId(),
+                messageSourceService.getMessage("messages.explain.waiting-voice", userData.getLanguageCode()));
+        chatMessageStateService.addMessage(
+                userData.getUser().getId(), userData.getChatId(), WAIT_EXPLAIN_IT_BACK, List.of(message.getMessageId()));
+    }
+
+    private void sendExplainItBackContinuePrompt(InputUserData userData) {
+        var message = telegramClientService.sendMessage(
+                userData.getChatId(),
+                messageSourceService.getMessage("messages.explain.continue", userData.getLanguageCode()),
+                keyboardService.getExplainItBackContinueKeyboard(userData.getLanguageCode()));
+        chatMessageStateService.addMessage(
+                userData.getUser().getId(), userData.getChatId(), WAIT_EXPLAIN_IT_BACK, List.of(message.getMessageId()));
+    }
+
+    private void sendExplainItBackOriginalMessage(InputUserData userData, EMessage message) {
+        var suffix = messageSourceService.getMessage("messages.suffix.execution-time", userData.getLanguageCode());
+        var messageString = parseMessage(message, true, suffix, userData.getLanguageCode(), messageSourceService);
+
+        telegramClientService.sendMessage(
+                manageMsgType(message),
+                MessageDataRequest.builder()
+                        .chatId(userData.getChatId())
+                        .messageText(messageString)
+                        .entities(manageMessageEntitiesLongMessage(
+                                message.getMessageEntities().stream()
+                                        .map(EMessageEntity::getValue)
+                                        .toList(),
+                                messageString,
+                                true,
+                                suffix,
+                                objectMapper))
+                        .replyKeyboard(keyboardService.getViewKeyboard(
+                                message.getId(),
+                                userData.getLanguageCode(),
+                                message.getType().equals(EMessageType.FORWARDED),
+                                null == message.getFile()
+                                        || (null != message.getText()
+                                                && messageString.length() >= MINIMUM_TEST_PASSED_LENGTH)))
+                        .file(message.getFile())
+                        .build());
+    }
+
+    private int incrementExplainItBackTries(InputUserData userData) {
+        var key = getExplainItBackTryKey(userData);
+        return COUNT_MAP.compute(key, (k, count) -> {
+            if (count == null) {
+                return new AtomicInteger(1);
+            }
+            count.incrementAndGet();
+            return count;
+        }).get();
+    }
+
+    private void clearExplainItBackTries(InputUserData userData) {
+        COUNT_MAP.remove(getExplainItBackTryKey(userData));
+    }
+
+    private String getExplainItBackTryKey(InputUserData userData) {
+        return EXPLAIN_IT_BACK_TRY_KEY_PREFIX
+                .concat(userData.getUser().getId().toString())
+                .concat(userData.getChatId().toString());
     }
 
     private void sendMessageBack(InputUserData userData, EMessage message, boolean isFull) {

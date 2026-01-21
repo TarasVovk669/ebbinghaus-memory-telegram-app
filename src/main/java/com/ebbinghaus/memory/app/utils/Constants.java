@@ -48,6 +48,9 @@ public class Constants {
     public static final String QUIZ_QUESTION_CALLBACK = "qqc";
     public static final String QUIZ_NEXT_QUESTION_CALLBACK = "qnqc";
     public static final String TEXT_TO_SPEECH_CALLBACK = "tts";
+    public static final String EXPLAIN_IT_BACK_CALLBACK = "eib";
+    public static final String EXPLAIN_IT_BACK_CONTINUE_YES_CALLBACK = "eibcy";
+    public static final String EXPLAIN_IT_BACK_CONTINUE_NO_CALLBACK = "eibcn";
 
     public static final String PUSH_QUIZ_ENABLE = "pqe";
     public static final String PUSH_QUIZ_DISABLE = "pqd";
@@ -88,6 +91,7 @@ public class Constants {
     public static final String JOBS_GROUP = "message-jobs";
     public static final String QUIZ_REMAINDER = "quiz_remainder";
     public static final String DEFAULT = "default";
+    public static final String EXPLAIN_IT_BACK_TRY_KEY_PREFIX = "eib_try_";
     public static final int MINIMUM_TEST_PASSED_LENGTH = 300;
     public static final String MESSAGE_CAN_T_BE_DELETED_FOR_EVERYONE = "message can't be deleted for everyone";
     public static final String MARKDOWN = "markdown";
@@ -114,4 +118,5 @@ public class Constants {
 
     public static final Integer DEFAULT_AUDIO_QTY = 2;
     public static final Integer DEFAULT_QUIZ_QTY = 2;
+    public static final Integer DEFAULT_EXPLAIN_IT_BACK_QTY = 2;
 }

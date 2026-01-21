@@ -19,6 +19,7 @@ spring:
           model: ${AI_MODEL}
           response-format:
             type: json_object
+          temperature: 1
     retry:
       max-attempts: 10
       backoff:

@@ -6,6 +6,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
+import org.telegram.telegrambots.meta.api.methods.send.SendVoice;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageCaption;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
@@ -236,6 +238,55 @@ public enum MessageType {
                               .captionEntities(data.getEntities())
                               .media(data.getFile().getFileId())
                               .build())
+                      .replyMarkup(data.getReplyKeyboard())
+                      .build()));
+    }
+
+    @Override
+    public boolean isAllowedSize(Integer length) {
+      return length <= 1024;
+    }
+  },
+  VOICE {
+    @Override
+    public List<MessageEntity> getMsgEntities(Message message) {
+      return message.getCaptionEntities();
+    }
+
+    @Override
+    public String getMsgText(Message message) {
+      return message.getCaption();
+    }
+
+    @Override
+    public File getFile(Message message) {
+      return File.builder().fileId(message.getVoice().getFileId()).fileType(FileType.VOICE).build();
+    }
+
+    @Override
+    public Message sendMessage(MessageDataRequest userData, TelegramClient telegramClient) {
+      return doTryTgCall(
+          () ->
+              telegramClient.execute(
+                  SendVoice.builder()
+                      .chatId(userData.getChatId())
+                      .caption(userData.getMessageText())
+                      .captionEntities(userData.getEntities())
+                      .replyMarkup(userData.getReplyKeyboard())
+                      .voice(new InputFile(userData.getFile().getFileId()))
+                      .build()));
+    }
+
+    @Override
+    public void editMessage(MessageDataRequest data, TelegramClient telegramClient) {
+      doTryTgCall(
+          () ->
+              telegramClient.execute(
+                  EditMessageCaption.builder()
+                      .chatId(data.getChatId())
+                      .messageId(data.getMessageId())
+                      .caption(data.getMessageText())
+                      .captionEntities(data.getEntities())
                       .replyMarkup(data.getReplyKeyboard())
                       .build()));
     }

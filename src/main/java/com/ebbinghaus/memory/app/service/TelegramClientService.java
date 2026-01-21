@@ -41,6 +41,8 @@ public interface TelegramClientService {
 
   Message sendAudioMessage(Long chatId, byte[] audioByteArray, Integer replyMessageId);
 
+  byte[] downloadFile(String fileId);
+
   void deleteMessage(Long chatId, int messageId);
 
   void deleteMessage(Long chatId, int messageId, String languageCode, EMessage message);
